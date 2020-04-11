@@ -1,0 +1,115 @@
+#' Saldae Dashboard Module plotly rawdata single
+#' @description Plot single variable
+#' @author Farid Azouaou
+#' @param tisefka raw data
+#' @param variable_inu variable to plot
+#' @param graph_type  plot type  "bar" "scatter" "line" "hist",..
+#' @return plotly interactive object
+mod_sekned_yiwet_tisefka <- function(tisefka = NULL,variable_inu=NULL,graph_type="scatter"){
+  y <- list(title = variable_inu)
+  tisefka%>%plotly::plot_ly(x = ~date,y = ~base::get(variable_inu),name =variable_inu ,type = graph_type) %>%
+    plotly::layout(yaxis = y)
+}
+
+#' Saldae Dashboard Module plotly rawdata
+#' @description multiple plots : data x-axis date and y-axis numerical variable
+#' @author Farid Azouaou
+#' @param tisefka raw data
+#' @param target_variables variables to plot
+#' @param graph_type plot type  "bar" "scatter" "line" "hist",..
+#' @return plotly interactive object
+#' @export
+mod_sekned_tisefka_iceqfan <- function(tisefka = NULL,target_variables= NULL,graph_type = NULL){
+  plotlist_inu <- target_variables%>%purrr::map(function(x)mod_sekned_yiwet_tisefka(tisefka =tisefka ,variable_inu = x,graph_type = graph_type))
+  sub_rows <- switch (length(plotlist_inu),
+    "1" = 0,"2" = 1,"3" = 2,"4" = 2,"5" = 2,"6" = 2
+  )
+  if(sub_rows >0){
+    plotlist_inu <- plotly::subplot(titleX = TRUE,titleY = TRUE,
+      plotlist_inu,nrows = sub_rows,margin = 0.04
+    )
+  }else{
+    plotlist_inu<- plotlist_inu[[1]]
+  }
+  plotlist_inu <- plotlist_inu%>%plotly::layout(legend = list(orientation = "h", x = 0.35, y = 100))%>%
+    plotly::config(displaylogo = F)
+  return(plotlist_inu)
+}
+
+#' Saldae Dashboard Module UI
+#' @description Saldae Dashboard module UI : display data(chart/table)
+#' @author Farid Azouaou
+#' @param id  server module ID
+#' @param div_width dimension infrmation about the framework(html object)
+#' @param mod_title module title (default NULL)
+#' @return UI module
+#' @export
+
+SA_tisefka_UI <- function(id,mod_title = NULL ,div_width = "col-xs-12 col-sm-6 col-md-8") {
+  ns <- NS(id)
+    fluidPage(fluidRow(
+             uiOutput(ns("select_element")),
+             uiOutput(ns("graph_type"))
+    ),
+    div(class = div_width,
+        shinydashboard::tabBox(width = 12, title = mod_title,
+                               tabPanel(icon("bar-chart"),
+                                        plotly::plotlyOutput(ns("tisefka_plot"))
+                               ),
+                               tabPanel(icon("table"),
+                                        DT::dataTableOutput(ns("tisefka_table"))
+                               )
+        )
+    )
+
+  )
+
+
+}
+
+#' Saldae Dashboard Module Server
+#' @description Saldae Dashboard module SERVER : render and generate object to be displayed data(chart/table)
+#' @author Farid Azouaou
+#' @param input  input shinydashboard elements containing information to use for output generation
+#' @param output output shinydashboard element
+#' @param session shiny session
+#' @param tisefka reactive object containing data
+#' @return output objects to be displayed in corresponding UI module
+#' @export
+
+SA_tisefka_mod <- function(input, output, session,tisefka) {
+  tisefka_choices <- reactive({
+    colnames(tisefka())
+    })
+  output$select_element <- renderUI({
+    shinyWidgets::pickerInput(inputId = session$ns("variable_picker"),
+                              label = "Select target element:",
+                              multiple = TRUE,
+                              choices = tisefka_choices()
+                              )
+    })
+  #--------------- chart type
+  output$graph_type <- renderUI({
+    plot_choices <- c(
+      `<i class='fa fa-line-chart'></i>` = "scatter", `<i class='fas fa-circle'></i>` = "bar", `<i class='fa fa-line-chart'></i>` = "Lines+Markers",
+      `<i class='fas fa-chart-area'></i>` = "Filled", `<i class='fa fa-bar-chart'></i>` = "Bar", `<i class='fas fa-bell'></i>` = "Density"
+    )
+
+    shinyWidgets::radioGroupButtons(
+      inputId = session$ns("graph_type"),
+      choices = plot_choices,
+      justified = FALSE,
+      status = "success",
+      selected = plot_choices[1]
+    )
+  })
+  #----------------main chart
+  output$tisefka_table <- DT::renderDataTable({
+    tisefka()%>%dplyr::select(!!input$variable_picker)
+  })
+  output$tisefka_plot <- plotly::renderPlotly({
+    mod_sekned_tisefka_iceqfan(tisefka = tisefka(),target_variables = input$variable_picker,graph_type = input$graph_type)
+  })
+  #---------------
+}
+
