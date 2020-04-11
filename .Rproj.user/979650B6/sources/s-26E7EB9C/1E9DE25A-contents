@@ -5,7 +5,16 @@ Version: 0.1
 Author: Farid Azouaou
 Maintainer: Farid Azouaou <contact@saldaenalytics.com>
 Description: The package consists of a set of reproducible shiny module (SERVER/UI), which make dashboard generation easier and handy.
-Imports: DT, shinydashboard,  shiny,  plotly,  dplyr,  tidyr,  purrr, shinyWidgets
+Imports: 
+      DT, 
+      shinydashboard,
+      shiny,  
+      plotly,  
+      dplyr,  
+      tidyr,  
+      purrr, 
+      shinyWidgets,
+      flexdashboard
 License: MIT 
 Encoding: UTF-8
 LazyData: true
