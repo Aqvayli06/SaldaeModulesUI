@@ -12,7 +12,7 @@ SA_tisefka_multiple_UI(id, mod_title = NULL,
 
 \item{mod_title}{module title (default NULL)}
 
-\item{div_width}{dimension infrmation about the framework(html object)}
+\item{div_width}{dimension information about the framework(html object)}
 }
 \value{
 UI module

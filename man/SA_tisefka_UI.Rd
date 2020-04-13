@@ -5,14 +5,14 @@
 \title{Saldae Dashboard Module UI}
 \usage{
 SA_tisefka_UI(id, mod_title = NULL,
-  div_width = "col-xs-12 col-sm-6 col-md-8")
+  div_width = "col-xs-12 col-sm-12 col-md-12")
 }
 \arguments{
 \item{id}{server module ID}
 
 \item{mod_title}{module title (default NULL)}
 
-\item{div_width}{dimension infrmation about the framework(html object)}
+\item{div_width}{dimension information about the framework(html object)}
 }
 \value{
 UI module

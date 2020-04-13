@@ -8,9 +8,8 @@
 mod_sekned_yiwet_tisefka <- function(tisefka = NULL,variable_inu=NULL,graph_type="scatter"){
   y <- list(title = variable_inu)
   tisefka%>%plotly::plot_ly(x = ~date,y = ~base::get(variable_inu),name =variable_inu ,type = graph_type) %>%
-    plotly::layout(yaxis = y)
+    plotly::layout(yaxis = y)%>%plotly::config(displaylogo = F)
 }
-
 #' Saldae Dashboard Module plotly rawdata
 #' @description multiple plots : data x-axis date and y-axis numerical variable
 #' @author Farid Azouaou
@@ -23,7 +22,7 @@ mod_sekned_yiwet_tisefka <- function(tisefka = NULL,variable_inu=NULL,graph_type
 mod_sekned_tisefka_iceqfan <- function(tisefka = NULL,target_variables= NULL,graph_type = NULL){
   plotlist_inu <- target_variables%>%purrr::map(function(x)mod_sekned_yiwet_tisefka(tisefka =tisefka ,variable_inu = x,graph_type = graph_type))
   sub_rows <- switch (length(plotlist_inu),
-    "1" = 0,"2" = 1,"3" = 2,"4" = 2,"5" = 2,"6" = 2
+    "1" = 0,"2" = 1,"3" = 2,"4" = 2,"5" = 2,"6" = 2,"7" = 3, "8" = 3, "9" = 3,"10" = 4,"11" = 4, "12" = 4
   )
   if(sub_rows >0){
     plotlist_inu <- plotly::subplot(titleX = TRUE,titleY = TRUE,
@@ -41,16 +40,16 @@ mod_sekned_tisefka_iceqfan <- function(tisefka = NULL,target_variables= NULL,gra
 #' @description Saldae Dashboard module UI : display data(chart/table)
 #' @author Farid Azouaou
 #' @param id  server module ID
-#' @param div_width dimension infrmation about the framework(html object)
+#' @param div_width dimension information about the framework(html object)
 #' @param mod_title module title (default NULL)
 #' @return UI module
 #' @export
 
-SA_tisefka_UI <- function(id,mod_title = NULL ,div_width = "col-xs-12 col-sm-6 col-md-8") {
+SA_tisefka_UI <- function(id,mod_title = NULL ,div_width = "col-xs-12 col-sm-12 col-md-12") {
   ns <- NS(id)
     fluidPage(fluidRow(
-             uiOutput(ns("select_element")),
-             uiOutput(ns("graph_type"))
+             column(width = 5 ,uiOutput(ns("select_element"))),
+             column(width = 3 ,uiOutput(ns("graph_type")))
     ),
     div(class = div_width,
         shinydashboard::tabBox(width = 12, title = mod_title,
@@ -86,7 +85,8 @@ SA_tisefka_mod <- function(input, output, session,tisefka) {
     shinyWidgets::pickerInput(inputId = session$ns("variable_picker"),
                               label = "Select target element:",
                               multiple = TRUE,
-                              choices = tisefka_choices()
+                              choices = tisefka_choices(),
+                              selected = tisefka_choices()[1]
                               )
     })
   #--------------- chart type
@@ -98,6 +98,7 @@ SA_tisefka_mod <- function(input, output, session,tisefka) {
 
     shinyWidgets::radioGroupButtons(
       inputId = session$ns("graph_type"),
+      label = "Select Chart Type:",
       choices = plot_choices,
       justified = FALSE,
       status = "success",
@@ -106,11 +107,12 @@ SA_tisefka_mod <- function(input, output, session,tisefka) {
   })
   #----------------main chart
   output$tisefka_table <- reactable::renderReactable({
-    reactable::reactable(tisefka()%>%dplyr::select(!!input$variable_picker), pagination = FALSE, highlight = TRUE, height = 250)
+    req(tisefka())
+    return(reactable::reactable(tisefka()%>%dplyr::select(!!input$variable_picker), pagination = FALSE, highlight = TRUE, height = 250))
   })
   output$tisefka_plot <- plotly::renderPlotly({
-      a <- mod_sekned_tisefka_iceqfan(tisefka = tisefka(),target_variables = input$variable_picker,graph_type = input$graph_type)
-   return(a)
+    req(tisefka())
+      return(mod_sekned_tisefka_iceqfan(tisefka = tisefka(),target_variables = input$variable_picker,graph_type = input$graph_type))
   })
   #---------------
 }
@@ -120,7 +122,7 @@ SA_tisefka_mod <- function(input, output, session,tisefka) {
 #' @description Saldae Dashboard module UI : display data(chart/table) multipleoutputs
 #' @author Farid Azouaou
 #' @param id  server module ID
-#' @param div_width dimension infrmation about the framework(html object)
+#' @param div_width dimension information about the framework(html object)
 #' @param mod_title module title (default NULL)
 #' @return UI module
 #' @export
@@ -143,10 +145,11 @@ SA_tisefka_multiple_UI <- function(id,mod_title = NULL ,div_width = "col-xs-12 c
 #' @param output output shinydashboard element
 #' @param session shiny session
 #' @param tisefka reactive object containing data
+#' @param div_width dimension information about the framework(html object)
 #' @return output objects to be displayed in corresponding UI module
 #' @export
 
-SA_tisefka_multiple_mod <- function(input, output, session,tisefka) {
+SA_tisefka_multiple_mod <- function(input, output, session,tisefka,div_width = "col-xs-6 col-sm-12 col-md-4") {
   tisefka_choices <- reactive({
     colnames(tisefka())
   })
@@ -173,7 +176,7 @@ SA_tisefka_multiple_mod <- function(input, output, session,tisefka) {
     shinyWidgets::radioGroupButtons(
       inputId = session$ns("graph_type"),
       choices = plot_choices,
-      label = "Select Chart type:",
+      label = "Select Chart Type:",
       justified = FALSE,
       status = "success",
       selected = plot_choices[1]
@@ -199,13 +202,13 @@ tisefka_yiwen_plots <- reactive({
 #---------------------
 output$graphs_ui <- renderUI({
   req(tisefka_yiwen_plots())
-  div_width = "col-xs-12 col-sm-4 col-md-8"
+  # div_width = "col-xs-12 col-sm-12 col-md-4"
   plots_list <- purrr::imap(tisefka_yiwen_plots(), ~{
     tagList(
       div(class = div_width,
           shinydashboard::tabBox(width = 12, title = .y,
                                  tabPanel(icon("bar-chart"),
-                                          plotly::plotlyOutput(session$ns(paste0("tisefka_plot_",.y)))
+                                          plotly::plotlyOutput(session$ns(paste0("tisefka_plot_",.y)), height = "250px")
                                  ),
                                  tabPanel(icon("table"),
                                           reactable::reactableOutput(session$ns(paste0("tisefka_table_",.y)))

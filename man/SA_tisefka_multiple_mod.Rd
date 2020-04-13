@@ -4,7 +4,8 @@
 \alias{SA_tisefka_multiple_mod}
 \title{Saldae Dashboard Module Server}
 \usage{
-SA_tisefka_multiple_mod(input, output, session, tisefka)
+SA_tisefka_multiple_mod(input, output, session, tisefka,
+  div_width = "col-xs-6 col-sm-12 col-md-4")
 }
 \arguments{
 \item{input}{input shinydashboard elements containing information to use for output generation}
@@ -14,6 +15,8 @@ SA_tisefka_multiple_mod(input, output, session, tisefka)
 \item{session}{shiny session}
 
 \item{tisefka}{reactive object containing data}
+
+\item{div_width}{dimension information about the framework(html object)}
 }
 \value{
 output objects to be displayed in corresponding UI module

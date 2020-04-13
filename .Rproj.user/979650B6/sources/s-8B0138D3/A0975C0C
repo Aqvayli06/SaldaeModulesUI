@@ -7,13 +7,13 @@
     "folds" : "",
     "hash" : "0",
     "id" : "A0975C0C",
-    "lastKnownWriteTime" : 1586777184,
+    "lastKnownWriteTime" : 1586789044,
     "last_content_update" : -2147483648,
     "path" : "~/Saldae_Analytics/SaldaePackages/SaldaeModulesUI/R/reporting_modules.R",
     "project_path" : "R/reporting_modules.R",
     "properties" : {
-        "cursorPosition" : "187,44",
-        "scrollLine" : "178"
+        "cursorPosition" : "85,35",
+        "scrollLine" : "0"
     },
     "relative_order" : 2,
     "source_on_save" : false,
