@@ -1,0 +1,33 @@
+
+ui <- shinydashboard::dashboardPage(
+  shinydashboard::dashboardHeader(title = "Shiny Modules"),
+  shinydashboard::dashboardSidebar(disable = FALSE),
+  shinydashboard::dashboardBody(
+    SA_tisefka_UI("SA_module_tisefka",mod_title= "Saldae Module"),
+    SA_tisefka_multiple_UI("SA_multiple_test",mod_title= "Saldae Module"),
+    # render the tabBox inside a fluidRow
+    SaldaeModulesUI::SA_Value_box_UI("SA_valuebox")
+
+  )
+)
+
+server <- function(input, output, session) {
+  tisefka_inu <- reactive({
+    economics2 <- economics%>%dplyr::mutate(akka = sqrt(psavert),akka2 = uempmed*psavert)
+  })
+  output$tisefka_inu_output <- reactive({
+    tisefka_inu()
+  })
+  output$plot_inu <- callModule(module =  SaldaeModulesUI::SA_tisefka_mod, id = "SA_module_tisefka",tisefka = tisefka_inu)
+  # callModule(module =  SaldaeModulesUI::SA_tisefka_mod, id = "SA_module", tisefka =tisefka_inu)
+
+  callModule(module =  SaldaeModulesUI::SA_tisefka_multiple_mod, id = "SA_multiple_test", tisefka = tisefka_inu)
+  # #------ value box module
+  tisefka_vb <- reactive({
+    a <- paste(round(rnorm(3)*3 + rnorm(3)*7,2))
+    return(a)
+  })
+  callModule(module = SaldaeModulesUI::SA_Value_box_server, id = "SA_valuebox", tisefka = tisefka_vb)
+  #-----------------
+}
+shinyApp(ui = ui, server = server)

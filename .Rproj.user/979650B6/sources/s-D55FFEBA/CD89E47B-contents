@@ -1,0 +1,49 @@
+library(shiny)
+library(tippy)
+
+shinyApp(
+  ui = fluidPage(
+
+    tippy_this(
+      textInput('text', 'Text'),
+      tooltip = "TEXT"
+    ),
+
+    tippy_this(
+      selectInput('select', 'Select', c('a', 'b')),
+      "SELECT"
+    ),
+
+    tippy_this(
+      numericInput('numeric', 'Numeric', NULL),
+      "NUMERIC"
+    ),
+
+    tippy_this(
+      radioButtons('radio', 'Radio', c('a', 'b')),
+      "RADIO"
+    ),
+
+    tippy_this(
+      checkboxInput('check', 'Check'),
+      "CHECKBOX"
+    ),
+
+    tippy_this(
+      actionButton('action', 'Action'),
+      "BUTTON"
+    ),
+
+    tippy_this(
+      sliderInput('slider', 'Slider', 0, 1, 0.5),
+      "SLIDER"
+    ),
+
+    tippy_this(
+      dateInput('date', 'Date'),
+      "DATE"
+    )
+
+  ),
+  server = function(input, output) {}
+)
