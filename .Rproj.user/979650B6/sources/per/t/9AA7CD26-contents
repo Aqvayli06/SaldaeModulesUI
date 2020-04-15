@@ -244,9 +244,7 @@ app_server <- function(input, output, session) {
   })
   #---------- in case of duplicated dates (grouping is required)--------
   output$tisefka_spread <- renderUI({
-    if (is.null(tisefka_tizegzawin1())) {
-      return(NULL)
-    }
+    req(input$date_variable)
     spread_choices <- tisefka_spread_yella(tisefka = tisefka_tizegzawin1(), date_index = input$date_variable)
     if(is.null(spread_choices)) {
       return(spread_choices)
@@ -262,9 +260,7 @@ app_server <- function(input, output, session) {
     )
   })
   output$tisefka_spread_var <- renderUI({
-    if (is.null(tisefka_tizegzawin1())) {
-      return(NULL)
-    }
+    req(input$date_variable)
     spread_value <- tisefka_spread_yella(tisefka = tisefka_tizegzawin1(), date_index = input$date_variable)
     if (is.null(spread_value)) {
       return(NULL)
@@ -302,12 +298,12 @@ output$color_theme1 <- renderUI({
 })
   
 color_palette_info1 <-reactive({
-    req(tisefka_tizegzawin1())
+    req(input$color_theme1)
     if(is.null(input$color_theme1))return(NULL)
     fren_color(color_theme = input$color_theme1)
 }) 
 output$sekned_color_palette1 <- renderPlot({
-    req(tisefka_tizegzawin1())
+    req(color_palette_info1())
     a <- color_palette_info1()$palette_inu
     return(a)
   },width = 100, height = 50)
@@ -373,8 +369,7 @@ output$colors_settings1 <- renderUI({
   })
 
   numeric_variables <- reactive({
-    req(credentials()$user_auth)
-    req(tisefka_tizegzawin1())
+    req(data_summary())
     dat_diag <- data_summary()$diagnosis
     numericals <- dat_diag[grepl("numeric", dat_diag$types), "variables", drop = T]
     multi_integers <- dat_diag[grepl("integer", dat_diag$types), c("unique_count", "variables"), drop = T]
@@ -387,7 +382,6 @@ output$colors_settings1 <- renderUI({
   })
   # Check boxes
   output$target_ts <- renderUI({
-    req(tisefka_tizegzawin1())
     req(numeric_variables())
     shinyWidgets::pickerInput(
       inputId = "target_ts",
@@ -402,9 +396,7 @@ output$colors_settings1 <- renderUI({
   })
 
   output$target_ts_exploration <- renderUI({
-    if (is.null(tisefka_tizegzawin1())) {
-      return(NULL)
-    }
+    req(numeric_variables())
     # Get the data set with the appropriate name
     # Create the checkboxes and select them all by default
     if (length(numeric_variables()) < 1) {
@@ -417,10 +409,7 @@ output$colors_settings1 <- renderUI({
   })
   #----------------------GROWTH RATE
   output$growth_rate_ih <- renderUI({
-    req(credentials()$user_auth)
-    if (length(numeric_variables()) == 0) {
-      return(NULL)
-    }
+    req(numeric_variables())
     shinyWidgets::prettySwitch(
       inputId = "growth_rate_ih",
       label = "Growth Rate:",
@@ -511,13 +500,10 @@ output$colors_settings1 <- renderUI({
   })
   # ..................... Summary ...........
   data_summary <- reactive({
-    req(credentials()$user_auth)
-    if (is.null(tisefka_tizegzawin1())) {
-      return(NULL)
-    }
+    req(tisefka_tizegzawin1())
     diag_output <- data_diagnosis_f(tisefka = tisefka_tizegzawin(), categoricals_ukud = tisefka_tizegzawin_d_ukud()$ukud_units)
     return(diag_output)
-})
+  })
   output$explore_table_view <- rhandsontable::renderRHandsontable({
     if (is.null(tisefka_tizegzawin1())) {
       return(NULL)

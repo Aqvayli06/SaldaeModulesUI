@@ -4,7 +4,7 @@
         "filePatterns" : [
         ],
         "path" : "~/Saldae_Analytics/SaldaeAnalyticsProd/R",
-        "query" : "data_diagnosis_f",
+        "query" : "Handson_exploration",
         "regex" : false
     }
 }

@@ -79,9 +79,13 @@ SA_tisefka_UI <- function(id,mod_title = NULL ,div_width = "col-xs-12 col-sm-12 
 
 SA_tisefka_mod <- function(input, output, session,tisefka) {
   tisefka_choices <- reactive({
-    colnames(tisefka())
-    })
+    tisefka()$numeric_variables
+  })
+  tisefka_tizegzawin <- reactive({
+    tisefka()$tisefka_tizegzawin
+  })
   output$select_element <- renderUI({
+    req(tisefka_tizegzawin())
     shinyWidgets::pickerInput(inputId = session$ns("variable_picker"),
                               label = "Select target element:",
                               multiple = TRUE,
@@ -91,6 +95,7 @@ SA_tisefka_mod <- function(input, output, session,tisefka) {
     })
   #--------------- chart type
   output$graph_type <- renderUI({
+    req(tisefka_tizegzawin())
     plot_choices <- c(
       `<i class='fa fa-line-chart'></i>` = "scatter", `<i class='fas fa-circle'></i>` = "bar", `<i class='fa fa-line-chart'></i>` = "Lines+Markers",
       `<i class='fas fa-chart-area'></i>` = "Filled", `<i class='fa fa-bar-chart'></i>` = "Bar", `<i class='fas fa-bell'></i>` = "Density"
@@ -107,12 +112,12 @@ SA_tisefka_mod <- function(input, output, session,tisefka) {
   })
   #----------------main chart
   output$tisefka_table <- reactable::renderReactable({
-    req(tisefka())
-    return(reactable::reactable(tisefka()%>%dplyr::select(!!input$variable_picker), pagination = FALSE, highlight = TRUE, height = 250))
+    req(input$variable_picker)
+    return(reactable::reactable(tisefka_tizegzawin()%>%dplyr::select(!!input$variable_picker), pagination = FALSE, highlight = TRUE, height = 250))
   })
   output$tisefka_plot <- plotly::renderPlotly({
-    req(tisefka())
-      return(mod_sekned_tisefka_iceqfan(tisefka = tisefka(),target_variables = input$variable_picker,graph_type = input$graph_type))
+    req(input$variable_picker)
+      return(mod_sekned_tisefka_iceqfan(tisefka = tisefka_tizegzawin(),target_variables = input$variable_picker,graph_type = input$graph_type))
   })
   #---------------
 }
@@ -151,8 +156,12 @@ SA_tisefka_multiple_UI <- function(id,mod_title = NULL ,div_width = "col-xs-12 c
 
 SA_tisefka_multiple_mod <- function(input, output, session,tisefka,div_width = "col-xs-6 col-sm-12 col-md-4") {
   tisefka_choices <- reactive({
-    colnames(tisefka())
+    tisefka()$numeric_variables
   })
+  tisefka_tizegzawin <- reactive({
+    tisefka()$tisefka_tizegzawin
+  })
+
   output$submit <- renderUI({
     shinyWidgets::actionBttn(
       inputId = session$ns("submit"),
@@ -184,17 +193,16 @@ SA_tisefka_multiple_mod <- function(input, output, session,tisefka,div_width = "
   })
   #----------------
 tisefka_tables <- reactive({
-    req(tisefka())
-    a <- purrr::map(input$variable_picker,~tisefka()%>%dplyr::select(!!.x))
-
+    req(tisefka_tizegzawin())
+    a <- purrr::map(input$variable_picker,~tisefka_tizegzawin()%>%dplyr::select(!!.x))
     a <- purrr::map(a,~reactable::reactable(.x,pagination = FALSE, highlight = TRUE, height = 250))%>%
       stats::setNames(input$variable_picker)
     return(a)
   })
 
 tisefka_yiwen_plots <- reactive({
-    req(tisefka())
-    purrr::imap(input$variable_picker,~mod_sekned_yiwet_tisefka(tisefka = tisefka(),variable_inu = .x,graph_type = input$graph_type))%>%
+    req(tisefka_tizegzawin())
+    purrr::imap(input$variable_picker,~mod_sekned_yiwet_tisefka(tisefka = tisefka_tizegzawin(),variable_inu = .x,graph_type = input$graph_type))%>%
       stats::setNames(input$variable_picker)
 })
 

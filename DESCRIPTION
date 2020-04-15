@@ -8,6 +8,7 @@ Description: The package consists of a set of reproducible shiny module (SERVER/
 Imports: 
       reactable, 
       shinydashboard,
+      rhandsontable,
       plotly,  
       dplyr,  
       tidyr,  

@@ -3,6 +3,7 @@
 #' @description Saldae Dashboard module UI : data upload
 #' @author Farid Azouaou
 #' @param id  server module ID
+#' @export
 ghred_tisefka_UI <- function(id){
   ns <- NS(id)
 fluidPage(
@@ -32,7 +33,7 @@ fluidPage(
            column(width = 3,
                   uiOutput(ns("SA_date_format")))
            ),
-  reactable::reactableOutput(ns("tisefka_view"))
+  rhandsontable::rHandsontableOutput(ns("tisefka_view"))
 )
 
 }
@@ -72,29 +73,55 @@ ghred_tisefka_mod <-function(input, output, session){
     shinyWidgets::pickerInput(
       inputId = session$ns("SA_date_format"),
       label = "Choose Date format:",
-      choices = SA_date_format_yellan(),
+      choices = SaldaeDataExplorer::SA_date_format_yellan(),
       options = list(
         style = "btn-primary"
       )
     )
   })
 
+
   tisefka_tizegzawin <- reactive({
     req(input$SA_date_format)
     SaldaeDataExplorer::sbed_tisefka(tisefka = tisefka(), date_variable = input$date_variable, SA_date_format = input$SA_date_format, spread_key = input$tisefka_spread, spread_value = input$tisefka_spread_var)
   })
-
 #--------- display raw data
-  output$tisefka_view <- reactable::renderReactable({
-    req(tisefka_tizegzawin())
-    return(reactable::reactable(data = tisefka_tizegzawin(),pagination = FALSE, highlight = TRUE, height = 400))
-  })
-#--------- Data summary
-  # data_summary <- reactive({
-  #   req(tisefka())
-  #   diag_output <- data_diagnosis_f(tisefka = tisefka(), categoricals_ukud = tisefka_tizegzawin_d_ukud()$ukud_units)
-  #   return(diag_output)
-  # })
+data_summary <- reactive({
+  req(tisefka_tizegzawin())
+    diag_output <- SaldaeDataExplorer::data_diagnosis_f(tisefka = tisefka_tizegzawin(), categoricals_ukud = NULL)
+    return(diag_output)
+})
 
-#-------
+numeric_variables <- reactive({
+    req(data_summary())
+    dat_diag <- data_summary()$diagnosis
+    numericals <- dat_diag[grepl("numeric", dat_diag$types), "variables", drop = T]
+    multi_integers <- dat_diag[grepl("integer", dat_diag$types), c("unique_count", "variables"), drop = T]
+    if (nrow(multi_integers)) {
+      multi_integers <- multi_integers[multi_integers["unique_count"] > 10, "variables", drop = T]
+    } else {
+      multi_integers <- NULL
+    }
+    return(c(numericals, multi_integers))
+})
+
+tisefka_overview <- reactive({
+  req(data_summary())
+  Handson_exploration(tisefka = tisefka_tizegzawin(), tisefka_report = data_summary(),numeric_variables = numeric_variables())
+})
+#-------------------------
+output$tisefka_view <- rhandsontable::renderRHandsontable({
+  req(tisefka_overview())
+  return(tisefka_overview())
+})
+
+explore_output <- reactive({
+  req(tisefka_overview())
+  output <- list()
+  output$tisefka_tizegzawin <- dplyr::tbl_df(tisefka_tizegzawin())
+  output$tisefka_overview <- tisefka_overview()
+  output$numeric_variables <- numeric_variables()
+  return(output)
+})
+
 }
