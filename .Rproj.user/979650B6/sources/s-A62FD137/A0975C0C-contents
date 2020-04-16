@@ -10,6 +10,7 @@ mod_sekned_yiwet_tisefka <- function(tisefka = NULL,variable_inu=NULL,graph_type
   tisefka%>%plotly::plot_ly(x = ~date,y = ~base::get(variable_inu),name =variable_inu ,type = graph_type) %>%
     plotly::layout(yaxis = y)%>%plotly::config(displaylogo = F)
 }
+
 #' Saldae Dashboard Module plotly rawdata
 #' @description multiple plots : data x-axis date and y-axis numerical variable
 #' @author Farid Azouaou
@@ -194,7 +195,7 @@ SA_tisefka_multiple_mod <- function(input, output, session,tisefka,div_width = "
   #----------------
 tisefka_tables <- reactive({
     req(tisefka_tizegzawin())
-    a <- purrr::map(input$variable_picker,~tisefka_tizegzawin()%>%dplyr::select(!!.x))
+    a <- purrr::map(input$variable_picker,~tisefka_tizegzawin()%>%dplyr::select(date,!!.x))
     a <- purrr::map(a,~reactable::reactable(.x,pagination = FALSE, highlight = TRUE, height = 250))%>%
       stats::setNames(input$variable_picker)
     return(a)
@@ -228,8 +229,6 @@ output$graphs_ui <- renderUI({
   })
   tagList(plots_list)
 })
-
-
 observeEvent(input$submit, {
     req(tisefka_yiwen_plots())
     purrr::map(names(tisefka_yiwen_plots()), ~{
@@ -239,9 +238,152 @@ observeEvent(input$submit, {
       output[[output_name_table]] <- reactable::renderReactable(tisefka_tables()[[.x]])
     })
   })
+}
+
+
+
+
+#------------------------ multiple-select, multiple output
+#' Saldae Dashboard Module UI (aggregator)
+#' @description Saldae Dashboard module UI : time based aggregator
+#' @author Farid Azouaou
+#' @param id  server module ID
+#' @param div_width dimension information about the framework(html object)
+#' @param mod_title module title (default NULL)
+#' @return UI module
+#' @export
+
+SA_tisefka_aggregator_UI <- function(id,mod_title = NULL ,div_width = "col-xs-12 col-sm-6 col-md-8") {
+  ns <- NS(id)
+  fluidPage(
+    fluidRow(
+    column(width = 4,uiOutput(ns("select_element")))    ,
+    column(width = 3,uiOutput(ns("time_unit_data")))    ,
+    column(width = 3,uiOutput(ns("graph_type")))
+    ),
+    fluidRow(
+      column(width = 3,uiOutput(ns("submit")))
+    ),
+  uiOutput(ns("graphs_ui"))
+  )
+}
 
 
 
 
 
+#' Saldae Dashboard Module Server(aggregator)
+#' @description Saldae Dashboard module SERVER : render and generate multiple output objects (chart/table)
+#' @author Farid Azouaou
+#' @param input  input shinydashboard elements containing information to use for output generation
+#' @param output output shinydashboard element
+#' @param session shiny session
+#' @param tisefka reactive object containing data
+#' @param div_width dimension information about the framework(html object)
+#' @return output objects to be displayed in corresponding UI module
+#' @export
+
+SA_tisefka_aggregator_mod <- function(input, output, session,tisefka,div_width = "col-xs-6 col-sm-12 col-md-6") {
+  tisefka_choices <- reactive({
+    tisefka()$numeric_variables
+  })
+  tisefka_tizegzawin <- reactive({
+    tisefka()$tisefka_tizegzawin
+  })
+  ts_time_units <- reactive({
+    tisefka()$ts_time_units
+  })
+
+  output$submit <- renderUI({
+    shinyWidgets::actionBttn(
+      inputId = session$ns("submit"),
+      style = "stretch",
+      color = "primary",
+      label = "Update output")
+  })
+  #----------- select variable
+  output$select_element <- renderUI({
+    shinyWidgets::pickerInput(inputId = session$ns("variable_picker"),
+                              label = "Select target element:",
+                              multiple = TRUE,
+                              choices = tisefka_choices()
+    )
+  })
+
+#---------------------------------------
+  output$time_unit_data <- renderUI({
+    req(ts_time_units())
+    shinyWidgets::radioGroupButtons(
+      inputId = session$ns("time_unit_data"),
+      label = "Aggregate by",
+      choices =  ts_time_units(),
+      status = "success",
+      justified = FALSE,
+      checkIcon = list(
+        yes = shiny::icon("ok",
+                          lib = "glyphicon"
+        )
+      )
+    )
+  })
+  #--------------- chart type
+  output$graph_type <- renderUI({
+    plot_choices <- c(
+      `<i class='fa fa-line-chart'></i>` = "scatter", `<i class='fas fa-circle'></i>` = "bar", `<i class='fa fa-line-chart'></i>` = "Lines+Markers",
+      `<i class='fas fa-chart-area'></i>` = "Filled", `<i class='fa fa-bar-chart'></i>` = "Bar", `<i class='fas fa-bell'></i>` = "Density"
+    )
+    shinyWidgets::radioGroupButtons(
+      inputId = session$ns("graph_type"),
+      choices = plot_choices,
+      label = "Select Chart Type:",
+      justified = FALSE,
+      status = "success",
+      selected = plot_choices[1]
+    )
+  })
+  #----------------
+  tisefka_aggregated <- reactive({
+    req(input$variable_picker)
+    SaldaeDataExplorer::data_exloration_aqerru(tisefka = tisefka_tizegzawin(),target_ts = input$variable_picker,time_unit =  input$time_unit_data,base_unit = ts_time_units()[1],aggregation_metric = "Sum")
+    })
+
+  tisefka_tables <- reactive({
+    req(tisefka_aggregated())
+    return(purrr::map(.x = tisefka_aggregated()$tisefka,~reactable::reactable(.x,pagination = FALSE, highlight = TRUE, height = 250))%>%
+              stats::setNames(names(tisefka_aggregated()$tisefka)))
+  })
+
+  tisefka_yiwen_plots <- reactive({
+    req(tisefka_aggregated())
+    purrr::map(.x = tisefka_aggregated()$tisefka,~SaldaeDataExplorer::sekned_tisefka_aggregator(tisefka = .x,time_unit = tisefka_aggregated()$time_unit,aggregation = tisefka_aggregated()$aggregation_metric,graph_type = "Lines",ts_actions = c("Anomaly","Season. Adjust")))
+  })
+  #---------------------
+  output$graphs_ui <- renderUI({
+    req(tisefka_yiwen_plots())
+    plots_list <- purrr::imap(tisefka_yiwen_plots(), ~{
+      tagList(
+        div(class = div_width,
+            shinydashboard::tabBox(width = 12, title = .y,
+                                   tabPanel(icon("bar-chart"),
+                                            plotly::plotlyOutput(session$ns(paste0("tisefka_plot_",.y)), height = "250px")
+                                   ),
+                                   tabPanel(icon("table"),
+                                            reactable::reactableOutput(session$ns(paste0("tisefka_table_",.y)))
+                                   )
+            )
+        ),
+        br()
+      )
+    })
+    tagList(plots_list)
+  })
+  observeEvent(input$submit, {
+    req(tisefka_yiwen_plots())
+    purrr::map(names(tisefka_yiwen_plots()), ~{
+      output_name_plot <- paste0("tisefka_plot_", .x)
+      output_name_table <- paste0("tisefka_table_", .x)
+      output[[output_name_plot]] <- plotly::renderPlotly(tisefka_yiwen_plots()[[.x]])
+      output[[output_name_table]] <- reactable::renderReactable(tisefka_tables()[[.x]])
+    })
+  })
 }

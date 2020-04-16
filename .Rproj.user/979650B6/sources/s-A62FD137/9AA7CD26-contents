@@ -215,10 +215,9 @@ app_server <- function(input, output, session) {
     )
   })
   output$date_variable_help <- renderUI({
-    if (is.null(tisefka_tizegzawin1())) {
-      return(NULL)
-    }
-    helpText("Once data is uploaded, you need to specify the variable to use for time(Date)")
+    req(tisefka_tizegzawin1())
+    my_help_text <- h3("Once data is uploaded, you need to specify the variable to use for time (Date)", style = "color:navy")
+    helpText(my_help_text)
   })
   output$SA_date_format <- renderUI({
     if (is.null(input$date_variable)) {
@@ -278,8 +277,7 @@ app_server <- function(input, output, session) {
     )
   })
   tisefka_tizegzawin_d_ukud <- reactive({
-    req(credentials()$user_auth)
-    if (is.null(tisefka_tizegzawin1())) {
+    if (is.null(tisefka_tizegzawin())) {
       return(NULL)
     }
     #--------------------------------------------------------
@@ -298,7 +296,6 @@ output$color_theme1 <- renderUI({
 })
   
 color_palette_info1 <-reactive({
-    req(input$color_theme1)
     if(is.null(input$color_theme1))return(NULL)
     fren_color(color_theme = input$color_theme1)
 }) 
@@ -459,7 +456,6 @@ output$colors_settings1 <- renderUI({
     )
   })
   output$target_ts_manipulation_y <- renderUI({
-    req(credentials()$user_auth)
     if (is.null(tisefka_tizegzawin1())) {
       return(NULL)
     }
@@ -478,7 +474,6 @@ output$colors_settings1 <- renderUI({
     if (is.null(tisefka_tizegzawin1())) {
       return(NULL)
     }
-    req(credentials()$user_auth)
     # Get the data set with the appropriate name
     exogenous_variable <- numeric_variables()
     exogenous_variable <- exogenous_variable[exogenous_variable != input$target_ts]
@@ -500,20 +495,17 @@ output$colors_settings1 <- renderUI({
   })
   # ..................... Summary ...........
   data_summary <- reactive({
-    req(tisefka_tizegzawin1())
+    req(tisefka_tizegzawin_d_ukud())
     diag_output <- data_diagnosis_f(tisefka = tisefka_tizegzawin(), categoricals_ukud = tisefka_tizegzawin_d_ukud()$ukud_units)
     return(diag_output)
   })
   output$explore_table_view <- rhandsontable::renderRHandsontable({
-    if (is.null(tisefka_tizegzawin1())) {
-      return(NULL)
-    }
+    req(numeric_variables())
     Handson_exploration(tisefka = tisefka_tizegzawin(), numeric_variables = numeric_variables(), tisefka_report = data_summary())
   })
 
   output$data_diagnosis <- renderDataTable({
-    req(credentials()$user_auth)
-    req(tisefka_tizegzawin1())
+    req(data_summary())
     DT_diag <- data_quality_DT(data_summary()$diagnosis, target = "diagnosis")
     return(DT_diag)
   })
@@ -533,7 +525,6 @@ output$colors_settings1 <- renderUI({
     progress <- shiny::Progress$new()
     # Make sure it closes when we exit this reactive, even if there's an error
     on.exit(progress$close())
-
     progress$set(message = "Generate Forecast", value = 0)
     # Number of times we'll go through the loop
     n <- 100
@@ -973,9 +964,7 @@ output$colors_settings1 <- renderUI({
     return(categoricals)
   })
   output$group_by <- renderUI({
-    if (is.null(tisefka_tizegzawin1())) {
-      return(NULL)
-    }
+  req(categoricals())
     # Get the data set with the appropriate name
     categ <- categoricals()
     if (length(categ) == 0) {
@@ -1004,12 +993,7 @@ output$colors_settings1 <- renderUI({
   #-------------------------Data exploration -------------
 
   output$group <- renderUI({
-    if (is.null(tisefka_tizegzawin1())) {
-      return(NULL)
-    }
-    if (is.null(numeric_variables())) {
-      return(NULL)
-    }
+    req(numeric_variables())
     shinyWidgets::prettySwitch(
       inputId = "sdukkel_ih",
       label = "Grouping",
@@ -1038,10 +1022,7 @@ output$colors_settings1 <- renderUI({
   })
 
   output$graph_type <- renderUI({
-    if (is.null(tisefka_tizegzawin1())) {
-      return(NULL)
-    }
-    req(credentials()$user_auth)
+    req(categoricals())
     # graph_choices <- c("Lines","Markers","Lines+Markers","Filled","Bar")
     categ <- categoricals()
     plot_choices <- c(
@@ -1068,15 +1049,11 @@ output$colors_settings1 <- renderUI({
 
   #------------------------------------  
   tisefka_asenqed <- reactive({
-    req(credentials()$user_auth)
-    if (is.null(tisefka_tizegzawin_d_ukud())) {
-      return(NULL)
-    }
+    req(tisefka_tizegzawin_d_ukud())
     tisefka <- data_exloration_aqerru(tisefka = tisefka_tizegzawin_d_ukud()$tisefka, tisefka_report = data_summary(), sdukkel = input$group_by, sdukkel_ih = input$sdukkel_ih, aggregation_metric = input$aggregation_metric, time_unit = input$time_unit_data, base_unit = ts_time_units()[1], target_ts = input$target_ts_exploration, ts_actions = input$ts_actions)
     return(tisefka)
   })
   view_exploration_rmd <- reactive({
-    req(credentials()$user_auth)
     exploratory_plot <- sekned_tisefka(tisefka_report = tisefka_asenqed(), ts_actions = input$ts_actions, graph_type = input$graph_type,plot_settings = color_palette_info1())
     exploratory_plot <- exploratory_plot %>%
       plotly::layout(plot_bgcolor = background_colour, paper_bgcolor = background_colour) %>%
@@ -1124,12 +1101,12 @@ output$colors_settings1 <- renderUI({
         shinydashboardPlus::dropdownDivider(),
         shinydashboardPlus::dropdownItem(url = "#", name = "item 3")
       ),
-      dataTableOutput("data_exploration")
+      DT::dataTableOutput("data_exploration")
     )
   })
 
-  output$data_exploration <- renderDataTable({
-    req(credentials()$user_auth)
+  output$data_exploration <- DT::renderDataTable({
+    req(tisefka_asenqed())
     tisefka <- sekned_tisefka_DT(tisefka = tisefka_asenqed()$tisefka)
     DT::datatable(tisefka,
       filter = "top", selection = "multiple", escape = FALSE,
@@ -1577,6 +1554,7 @@ output$colors_settings1 <- renderUI({
       # Knit the document, passing in the `params` list, and eval it in a
       # child of the global environment (this isolates the code in the document
       # from the code in this app).
+      knitr::opts_knit$set(base.dir = file.path(getwd(),"inst","app"))
       rmarkdown::render(
         input = tempReport, output_file = file,
         params = params,

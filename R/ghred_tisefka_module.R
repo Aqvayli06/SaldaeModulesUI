@@ -33,7 +33,23 @@ fluidPage(
            column(width = 3,
                   uiOutput(ns("SA_date_format")))
            ),
-  rhandsontable::rHandsontableOutput(ns("tisefka_view"))
+  #---- Help text
+  uiOutput(ns("date_variable_help")),
+
+  #---- Data Overview
+  div(class = "col-xs-12 col-sm-12 col-md-12",
+      shinydashboard::tabBox(width = 12, title = "Data Diagnosis",
+                             tabPanel(title = "Overview",icon = icon("eye"),
+                                      rhandsontable::rHandsontableOutput(ns("tisefka_view"))
+                             ),
+                             tabPanel(title = "Description",icon = icon("table"),
+                                      rhandsontable::rHandsontableOutput(ns("tisefka_description"))
+                             ),
+                             tabPanel(title = "Outliers",icon = icon("table"),
+                                      rhandsontable::rHandsontableOutput(ns("tisefka_outliers"))
+                             )
+      )
+  )
 )
 
 }
@@ -53,7 +69,11 @@ ghred_tisefka_mod <-function(input, output, session){
     req(input$tisefka_file)
     SaldaeDataExplorer::ghred_tisefka_aqerru(input_file = input$tisefka_file, tala = input$tisefka_tala, tawriqt = NULL)
   })
-
+  output$date_variable_help <- renderUI({
+    req(tisefka())
+    my_help_text <- h3("Once data is uploaded, you need to specify the variable to use for time (Date)", style = "color:navy")
+    helpText(my_help_text)
+  })
   #------- select date variable
   output$date_variable <- renderUI({
     req(tisefka())
@@ -107,12 +127,23 @@ numeric_variables <- reactive({
 
 tisefka_overview <- reactive({
   req(data_summary())
-  Handson_exploration(tisefka = tisefka_tizegzawin(), tisefka_report = data_summary(),numeric_variables = numeric_variables())
+  SaldaeDataExplorer::Handson_exploration(tisefka = tisefka_tizegzawin(), tisefka_report = data_summary(),numeric_variables = numeric_variables())
 })
 #-------------------------
+output$tisefka_description <- rhandsontable::renderRHandsontable({
+  req(data_summary())
+  return(rhandsontable::rhandsontable(data_summary()$beschreibung, rowHeaders = NULL, width = 1000, height = 300))
+})
+output$tisefka_outliers <- rhandsontable::renderRHandsontable({
+  req(tisefka_overview())
+  return(rhandsontable::rhandsontable(data_summary()$outliers, rowHeaders = NULL, width = 1000, height = 300))
+})
 output$tisefka_view <- rhandsontable::renderRHandsontable({
   req(tisefka_overview())
   return(tisefka_overview())
+})
+ts_time_units <- reactive({
+  return(possible_units_for_summary(time_vect = rownames(tisefka_tizegzawin())))
 })
 
 explore_output <- reactive({
@@ -121,6 +152,7 @@ explore_output <- reactive({
   output$tisefka_tizegzawin <- dplyr::tbl_df(tisefka_tizegzawin())
   output$tisefka_overview <- tisefka_overview()
   output$numeric_variables <- numeric_variables()
+  output$ts_time_units <- ts_time_units()
   return(output)
 })
 

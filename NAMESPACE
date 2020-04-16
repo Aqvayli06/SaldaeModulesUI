@@ -3,6 +3,8 @@
 export(SA_Value_box_UI)
 export(SA_Value_box_server)
 export(SA_tisefka_UI)
+export(SA_tisefka_aggregator_UI)
+export(SA_tisefka_aggregator_mod)
 export(SA_tisefka_mod)
 export(SA_tisefka_multiple_UI)
 export(SA_tisefka_multiple_mod)
