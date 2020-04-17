@@ -4,15 +4,15 @@
     "created" : 1586794618514.000,
     "dirty" : false,
     "encoding" : "UTF-8",
-    "folds" : "",
+    "folds" : "417|41|436|2|\n",
     "hash" : "0",
     "id" : "9AA7CD26",
-    "lastKnownWriteTime" : 1586956497,
+    "lastKnownWriteTime" : 1587129881,
     "last_content_update" : -2147483648,
     "path" : "~/Saldae_Analytics/SaldaeAnalyticsProd/R/app_server.R",
     "project_path" : null,
     "properties" : {
-        "cursorPosition" : "7,28",
+        "cursorPosition" : "417,25",
         "scrollLine" : "0"
     },
     "relative_order" : 6,

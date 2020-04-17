@@ -5,15 +5,15 @@
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "462215244",
+    "hash" : "0",
     "id" : "A0975C0C",
-    "lastKnownWriteTime" : 1587058089,
+    "lastKnownWriteTime" : 1587067439,
     "last_content_update" : -2147483648,
     "path" : "~/Saldae_Analytics/SaldaePackages/SaldaeModulesUI/R/reporting_modules.R",
     "project_path" : "R/reporting_modules.R",
     "properties" : {
-        "cursorPosition" : "360,32",
-        "scrollLine" : "345"
+        "cursorPosition" : "231,25",
+        "scrollLine" : "0"
     },
     "relative_order" : 2,
     "source_on_save" : false,

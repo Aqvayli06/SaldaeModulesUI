@@ -417,9 +417,7 @@ output$colors_settings1 <- renderUI({
   #------------
   output$growth_rate_yellan <- renderUI({
     req(credentials()$user_auth)
-    if (is.null(input$growth_rate_ih)) {
-      return(NULL)
-    }
+    req(input$growth_rate_ih)
     if (input$growth_rate_ih == FALSE) {
       return(NULL)
     }
@@ -1555,11 +1553,27 @@ output$colors_settings1 <- renderUI({
       # child of the global environment (this isolates the code in the document
       # from the code in this app).
       knitr::opts_knit$set(base.dir = file.path(getwd(),"inst","app"))
+      
+      
+      web_site_path <- file.path("..","usr","share","nginx","html")
+      rmarkdown::render(
+        input = tempReport, output_file = "SA_dashboard_view",
+        params = params,
+        output_dir = web_site_path,
+        clean = TRUE,
+        quiet = TRUE,
+        envir = new.env(parent = globalenv())
+      )
+      
       rmarkdown::render(
         input = tempReport, output_file = file,
         params = params,
+        clean = TRUE,
         envir = new.env(parent = globalenv())
       )
+      # rmarkdown::render_site(
+      #   input = tempReport
+      # )
     }
   )
 
