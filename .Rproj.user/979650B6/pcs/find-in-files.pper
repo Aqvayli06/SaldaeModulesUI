@@ -3,8 +3,8 @@
         "caseSensitive" : false,
         "filePatterns" : [
         ],
-        "path" : "~/Saldae_Analytics/SaldaePackages/SaldaeDataExplorer",
-        "query" : "sekned_gemmu_f",
+        "path" : "~/Saldae_Analytics/SaldaePackages/SaldaeModulesUI/R",
+        "query" : "gemmu_yellan_f",
         "regex" : false
     }
 }

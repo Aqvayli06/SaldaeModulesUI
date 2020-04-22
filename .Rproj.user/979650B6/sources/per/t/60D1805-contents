@@ -1,6 +1,6 @@
 #------------------------ multiple-select, multiple output
-#' Saldae Dashboard Module UI (growth rate)
-#' @description Saldae Dashboard module UI : growth rate calculator
+#' Saldae Dashboard Module UI (analytics)
+#' @description Saldae Dashboard module UI : forecasting
 #' @author Farid Azouaou
 #' @param id  server module ID
 #' @param div_width dimension information about the framework(html object)
@@ -8,12 +8,11 @@
 #' @return UI module
 #' @export
 
-SA_tisefka_gemmu_UI <- function(id,mod_title = NULL ,div_width = "col-xs-12 col-sm-6 col-md-8") {
+SA_tisefka_forecast_UI <- function(id,mod_title = NULL ,div_width = "col-xs-12 col-sm-6 col-md-8") {
   ns <- NS(id)
   fluidPage(
     fluidRow(
-      column(width = 4,uiOutput(ns("select_element")))    ,
-      column(width = 3,uiOutput(ns("gemmu_rate_yellan")))
+      column(width = 4,uiOutput(ns("select_element")))
     ),
     fluidRow(
       column(width = 3,uiOutput(ns("submit")))
@@ -24,8 +23,8 @@ SA_tisefka_gemmu_UI <- function(id,mod_title = NULL ,div_width = "col-xs-12 col-
 
 
 
-#' Saldae Dashboard Module Server Growth Rate
-#' @description Saldae Dashboard module SERVER : render and generate multiple output objects for growth rates
+#' Saldae Dashboard Module Server Analytics
+#' @description Saldae Dashboard module SERVER : render and generate multiple output objects for analytics
 #' @author Farid Azouaou
 #' @param input  input shinydashboard elements containing information to use for output generation
 #' @param output output shinydashboard element
@@ -35,7 +34,7 @@ SA_tisefka_gemmu_UI <- function(id,mod_title = NULL ,div_width = "col-xs-12 col-
 #' @return output objects to be displayed in corresponding UI module
 #' @export
 
-SA_tisefka_gemmu_mod <- function(input, output, session,tisefka,div_width = "col-xs-6 col-sm-12 col-md-6") {
+SA_tisefka_forecast_mod <- function(input, output, session,tisefka,div_width = "col-xs-6 col-sm-12 col-md-6") {
   tisefka_choices <- reactive({
     tisefka()$numeric_variables
   })
@@ -82,25 +81,33 @@ SA_tisefka_gemmu_mod <- function(input, output, session,tisefka,div_width = "col
   })
 
   #----------------
-  tisefka_gemmu <- reactive({
+  tisefka_forecast_aqerru <- reactive({
     req(input$variable_picker)
-    SaldaeDataExplorer::Saldae_rate_n_gemmu_f(tisefka = tisefka_tizegzawin(),target_ts = input$variable_picker,gemmu_iswi = input$gemmu_rate_yellan, base_unit = ts_time_units()[1])
+    a
+    SaldaeForecasting::Saldae_Forecaster(tisefka = tisefka_tizegzawin(),target_variables = input$variable_picker, anomaly_detection = TRUE, Saldae_model = "saldae_prophet")
   })
+
+  tisefka_forecast <- reactive({
+    req(tisefka_forecast_aqerru())
+    purrr::map(.x= tisefka_forecast_aqerru(),  ~SaldaeForecasting::sbed_forecast_aqerru(.x , asurif_arzdat = NULL))
+  })
+
 
   tisefka_tables <- reactive({
-    req(tisefka_gemmu())
-    return(purrr::map(.x =tisefka_gemmu(),~reactable::reactable(.x,pagination = FALSE, highlight = TRUE, height = 250))%>%
-             stats::setNames(names(tisefka_gemmu())))
+    req(tisefka_forecast())
+    return(purrr::map(.x =tisefka_forecast(),~reactable::reactable(.x,pagination = FALSE, highlight = TRUE, height = 250))%>%
+             stats::setNames(names(tisefka_forecast())))
   })
 
-  tisefka_yiwen_plots <- reactive({
-    req(tisefka_gemmu())
-    purrr::map(.x = tisefka_gemmu(),~SaldaeDataExplorer::sekned_gemmu_f(gemu_tisefka = .x))
+  tisefka_plots <- reactive({
+    req(tisefka_forecast())
+    purrr::map(.x =names(tisefka_forecast()),~SaldaeForecasting::sekned_forecast_aqeru(fcast_df =  tisefka_forecast()[[.x]],target_variable = .x))%>%
+      stats::setNames(names(tisefka_forecast()))
   })
   #---------------------
   output$graphs_ui <- renderUI({
-    req(tisefka_yiwen_plots())
-    plots_list <- purrr::imap(tisefka_yiwen_plots(), ~{
+    req(tisefka_plots())
+    plots_list <- purrr::imap(tisefka_plots(), ~{
       tagList(
         div(class = div_width,
             shinydashboard::tabBox(width = 12, title = .y,
@@ -118,11 +125,11 @@ SA_tisefka_gemmu_mod <- function(input, output, session,tisefka,div_width = "col
     tagList(plots_list)
   })
   observeEvent(input$submit, {
-    req(tisefka_yiwen_plots())
-    purrr::map(names(tisefka_yiwen_plots()), ~{
+    req(tisefka_plots())
+    purrr::map(names(tisefka_plots()), ~{
       output_name_plot <- paste0("tisefka_plot_", .x)
       output_name_table <- paste0("tisefka_table_", .x)
-      output[[output_name_plot]] <- plotly::renderPlotly(tisefka_yiwen_plots()[[.x]])
+      output[[output_name_plot]] <- plotly::renderPlotly(tisefka_plots()[[.x]])
       output[[output_name_table]] <- reactable::renderReactable(tisefka_tables()[[.x]])
     })
   })

@@ -143,7 +143,7 @@ output$tisefka_view <- rhandsontable::renderRHandsontable({
   return(tisefka_overview())
 })
 ts_time_units <- reactive({
-  return(possible_units_for_summary(time_vect = rownames(tisefka_tizegzawin())))
+  return(SaldaeDataExplorer::possible_units_for_summary(time_vect = rownames(tisefka_tizegzawin())))
 })
 
 explore_output <- reactive({

@@ -1,5 +1,5 @@
 library("tidyr")
-library("SaldaeDataExplorer")
+# library("SaldaeDataExplorer")
 ui <- shinydashboard::dashboardPage(
   shinydashboard::dashboardHeader(title = "Shiny Modules"),
   shinydashboard::dashboardSidebar(disable = FALSE),
@@ -13,7 +13,9 @@ ui <- shinydashboard::dashboardPage(
 
     SaldaeModulesUI::SA_tisefka_aggregator_UI("SA_time_aggregator"),
 
-    SaldaeModulesUI::SA_tisefka_gemmu_UI("SA_tisfka_gemmu")
+    SaldaeModulesUI::SA_tisefka_gemmu_UI("SA_tisfka_gemmu"),
+
+    SaldaeModulesUI::SA_tisefka_forecast_UI("SA_tisfka_forecast")
   )
 )
 
@@ -35,6 +37,12 @@ server <- function(input, output, session) {
 
   #----- multiple plot multiple graphs: growth rates
   callModule(module =  SaldaeModulesUI::SA_tisefka_gemmu_mod, id = "SA_tisfka_gemmu", tisefka = reactive({tisefka_inu()}))
+
+
+  #------ Forecasting tool
+  callModule(module =  SaldaeModulesUI::SA_tisefka_forecast_mod, id = "SA_tisfka_forecast", tisefka = reactive({tisefka_inu()}))
+
+
 }
 
 shinyApp(ui = ui, server = server)

@@ -8,7 +8,7 @@
 mod_sekned_yiwet_tisefka <- function(tisefka = NULL,variable_inu=NULL,graph_type="scatter"){
   y <- list(title = variable_inu)
   tisefka%>%plotly::plot_ly(x = ~date,y = ~base::get(variable_inu),name =variable_inu ,type = graph_type) %>%
-    plotly::layout(yaxis = y)%>%plotly::config(displaylogo = F)
+    plotly::layout(yaxis = y)%>%plotly::config(displaylogo = F)%>%plotly::partial_bundle()
 }
 
 #' Saldae Dashboard Module plotly rawdata
@@ -34,6 +34,7 @@ mod_sekned_tisefka_iceqfan <- function(tisefka = NULL,target_variables= NULL,gra
   }
   plotlist_inu <- plotlist_inu%>%plotly::layout(legend = list(orientation = "h", x = 0.35, y = 100))%>%
     plotly::config(displaylogo = F)
+  plotlist_inu<-plotlist_inu%>%plotly::partial_bundle()
   return(plotlist_inu)
 }
 
