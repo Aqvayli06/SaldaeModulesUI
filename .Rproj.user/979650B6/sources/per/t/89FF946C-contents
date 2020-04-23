@@ -1,12 +1,8 @@
 #' reporting_board_module UI Function
 #'
 #' @description A shiny Module.
-#'
+#' @author Farid Azouaou
 #' @param id,input,output,session Internal parameters for {shiny}.
-#'
-#' @noRd
-#'
-#' @importFrom shiny NS tagList
 #' @export
 SA_reporting_UI <- function(id){
   ns <- NS(id)
@@ -18,7 +14,7 @@ SA_reporting_UI <- function(id){
     ),
     fluidRow(
       column(width = 4,
-             textOutput(ns("report_header_inf"))
+             uiOutput(ns("report_body_box"))
       )
     ),
     #------------------- Generate Report
@@ -31,10 +27,13 @@ SA_reporting_UI <- function(id){
 
 #' reporting_board_module Server Function
 #'
-#' @noRd
+#' @description A shiny Module.
+#' @author Farid Azouaou
+#' @param id,input,output,session Internal parameters for {shiny}.
 #' @export
 
-SA_reporting_mod <- function(input, output, session){
+SA_reporting_mod <- function(input, output, session,tisefka_list){
+
 
   output$report_header_box <- renderUI({
     shinydashboard::box(title = "Reporting Document Information",collapsible = TRUE,
@@ -71,6 +70,7 @@ SA_reporting_mod <- function(input, output, session){
 
 
 output$generate_report <- renderUI({
+  tisefka_list()
   shinyWidgets::actionBttn(inputId = session$ns("generate_report"),
                            label = "Generate Report")
 })
@@ -87,8 +87,14 @@ saldae_report_header <- reactive({
    )
 })
 
-output$report_header_inf <- renderText({
-  paste("Report Header Info length:",saldae_report_header())
+output$report_body_box <- renderUI({
+  shinydashboard::box(title = "Reporting Document Content",collapsible = TRUE,
+                      status = "success",width = 12,
+                      #-----HEADER CONTENT
+                      fluidRow(
+
+                      )
+  )
 })
 
 observeEvent(input$generate_report,{
@@ -96,7 +102,7 @@ observeEvent(input$generate_report,{
   rmd_files_package  <- system.file(rmd_files, package = "SaldaeReporting")
   dir.create("./reporting")
   file.copy(from = rmd_files_package,to = paste0("./reporting/",rmd_files),overwrite = TRUE)
-  SaldaeReporting::SALDAE_reporting_engine(dash_aqerruy = saldae_report_header(),dash_ul = dash_ul())
+  SALDAE_reporting_engine(dash_aqerruy = saldae_report_header(),dash_ul = tisefka_list())
 })
 
 }

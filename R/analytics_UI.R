@@ -133,4 +133,13 @@ SA_tisefka_forecast_mod <- function(input, output, session,tisefka,div_width = "
       output[[output_name_table]] <- reactable::renderReactable(tisefka_tables()[[.x]])
     })
   })
+
+  analytics_output <- reactive({
+    req(tisefka_plots())
+    output <- list()
+    output$analytics_plots    <- tisefka_plots()
+    output$analytics_tisefka  <- tisefka_tables()
+    output$analytics_settings <- "ulac"
+    return(output)
+  })
 }
