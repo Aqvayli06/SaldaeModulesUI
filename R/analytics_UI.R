@@ -138,7 +138,7 @@ SA_tisefka_forecast_mod <- function(input, output, session,tisefka,div_width = "
     req(tisefka_plots())
     output <- list()
     output$analytics_plots    <- tisefka_plots()
-    output$analytics_tisefka  <- tisefka_tables()
+    output$analytics_tisefka  <- tisefka_forecast()
     output$analytics_settings <- "ulac"
     return(output)
   })
