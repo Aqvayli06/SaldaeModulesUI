@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1588076579154.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "8BDBDE3C",
+    "lastKnownWriteTime" : 1588066999,
+    "last_content_update" : 1588066999,
+    "path" : "~/Saldae_Analytics/SaldaePackages/SaldaeModulesUI/R/candlestick_UI.R",
+    "project_path" : "R/candlestick_UI.R",
+    "properties" : {
+        "cursorPosition" : "72,0",
+        "scrollLine" : "0"
+    },
+    "relative_order" : 7,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
