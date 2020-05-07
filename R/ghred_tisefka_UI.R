@@ -39,8 +39,11 @@ fluidPage(
   uiOutput(ns("duplicated_date_warning")),
 
 
-  fluidRow(column(width = 3,
-                  uiOutput(ns("tisefka_spread"))),
+  fluidRow(
+           column(width = 3,
+                  uiOutput(ns("handle_duplicate"))),
+           column(width = 3,
+                  uiOutput(ns("aggregate_param1"))),
            column(width = 3,
                   uiOutput(ns("tisefka_spread_var")))
   ),
@@ -81,7 +84,7 @@ ghred_tisefka_mod <-function(input, output, session){
   })
   output$date_variable_help <- renderUI({
     req(tisefka())
-    my_help_text <- h4("Data Successfully uploaded, you need to specify the variable to use for time (Date)", style = "color:green")
+    my_help_text <- h5("Data Successfully uploaded, you need to specify the variable to use for time (Date)", style = "color:green")
     helpText(my_help_text)
   })
   #------- select date variable
@@ -112,17 +115,52 @@ ghred_tisefka_mod <-function(input, output, session){
 
   #---------- in case of duplicated dates (grouping is required)--------
 
-  spread_yellan <- reactive({
-    SaldaeDataExplorer::tisefka_spread_yella(tisefka = tisefka(), date_variable = input$date_variable)
+
+  duplicates_yellan <- reactive({
+    req(input$date_variable)
+    # TRUE%in%(economics_long[,"date"]%>%base::duplicated())
+    d_ukud <- SaldaeDataExplorer::IsDate(mydate = tisefka()[1,input$date_variable],SA_date_format = input$SA_date_format)
+    if(d_ukud==FALSE)return(FALSE)
+    TRUE%in%(tisefka()[,input$date_variable]%>%base::duplicated())
   })
   output$duplicated_date_warning <- renderUI({
-    req(spread_yellan())
-    if(is.null(spread_yellan()))return(NULL)
-    my_help_text <- h4("There are duplicated dates, please aggregate or spread your data", style = "color:black")
+    req(duplicates_yellan())
+    if(duplicates_yellan()==FALSE)return(NULL)
+    my_help_text <- h5("There are duplicated dates, please aggregate or spread your data", style = "color:orange")
     helpText(my_help_text)
   })
-  output$tisefka_spread <- renderUI({
-    req(input$date_variable)
+
+output$handle_duplicate <- renderUI({
+    req(duplicates_yellan())
+    handle_duplicate_choices <-c("Remove","Aggregate","Spread")
+    if(duplicates_yellan()==FALSE)return(NULL)
+    shinyWidgets::pickerInput(
+      inputId = session$ns("handle_duplicate"),
+      label = "Handle Duplicates",
+      choices = handle_duplicate_choices,
+      multiple = FALSE,
+      options = list(
+        style = "btn-primary"
+      )
+    )
+})
+
+output$aggregate_param1 <- renderUI({
+  req(input$handle_duplicate)
+  if(input$handle_duplicate=="Remove"){return(NULL)}
+  else if(input$handle_duplicate=="Aggregate"){
+    aggregation_metric <-c("Sum","Average","Maximum","Minimum","Median")
+    shinyWidgets::pickerInput(
+      inputId = session$ns("aggregate_duplicates"),
+      label = "Aggregation Metric",
+      choices = aggregation_metric,
+      multiple = FALSE,
+      options = list(
+        style = "btn-primary"
+      )
+    )
+  }else if(input$handle_duplicate=="Spread"){
+    req(spread_yellan())
     if(is.null(spread_yellan()))return(NULL)
     shinyWidgets::pickerInput(
       inputId = session$ns("tisefka_spread"),
@@ -133,11 +171,21 @@ ghred_tisefka_mod <-function(input, output, session){
         style = "btn-primary"
       )
     )
-  })
+  }
 
-  output$tisefka_spread_var <- renderUI({
-    req(input$date_variable)
+})
+
+
+#----------duplicates : spread
+spread_yellan <- reactive({
+    SaldaeDataExplorer::tisefka_spread_yella(tisefka = tisefka(), date_variable = input$date_variable)
+})
+
+
+output$tisefka_spread_var <- renderUI({
+    req(spread_yellan())
     if(is.null(spread_yellan()))return(NULL)
+    if(input$handle_duplicate!="Spread")return(NULL)
     spread_value <- colnames(tisefka())
     spread_value <- spread_value[spread_value != input$date_variable]
     spread_value <- spread_value[spread_value != input$tisefka_spread]
@@ -152,16 +200,20 @@ ghred_tisefka_mod <-function(input, output, session){
     )
   })
 
-  tisefka_tizegzawin <- reactive({
+tisefka_tizegzawin <- reactive({
     req(input$SA_date_format)
-    if(is.null(spread_yellan())){
-      spread_key<-spread_value <- NULL
-    }else{
+    aggregation_metric <- spread_key<-spread_value <- NULL
+    handle_duplicate <-input$handle_duplicate
+    if(is.null(handle_duplicate))handle_duplicate<-"No_duplicated_dates"
+    if(handle_duplicate=="Spread"){
       spread_key    <-  input$tisefka_spread
       spread_value  <-  input$tisefka_spread_var
+    }else if(handle_duplicate=="Aggregate"){
+      aggregation_metric  <-  input$aggregate_duplicates
     }
-    SaldaeDataExplorer::sbed_tisefka(tisefka = tisefka(), date_variable = input$date_variable, SA_date_format = input$SA_date_format, spread_key = spread_key, spread_value = spread_value)
-  })
+
+    SaldaeDataExplorer::sbed_tisefka(tisefka = tisefka(), date_variable = input$date_variable, SA_date_format = input$SA_date_format, spread_key = spread_key,aggregation_metric = aggregation_metric, spread_value = spread_value)
+})
 #--------- display raw data
 data_summary <- reactive({
   req(tisefka_tizegzawin())

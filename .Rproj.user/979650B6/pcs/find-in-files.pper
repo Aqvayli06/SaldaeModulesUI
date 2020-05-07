@@ -3,8 +3,8 @@
         "caseSensitive" : false,
         "filePatterns" : [
         ],
-        "path" : "~/Saldae_Analytics/SaldaeAnalyticsProd/R",
-        "query" : "tisefka_spread_yella",
+        "path" : "~/Saldae_Analytics/SaldaePackages/SaldaeDataExplorer/R",
+        "query" : "pivot_wider",
         "regex" : false
     }
 }

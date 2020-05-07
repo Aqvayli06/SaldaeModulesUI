@@ -5,15 +5,15 @@
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "1801872773",
+    "hash" : "4039858697",
     "id" : "7EB0A6D8",
-    "lastKnownWriteTime" : 1588781574,
+    "lastKnownWriteTime" : 1588854845,
     "last_content_update" : -2147483648,
     "path" : "~/Saldae_Analytics/SaldaePackages/SaldaeModulesUI/R/ghred_tisefka_UI.R",
     "project_path" : "R/ghred_tisefka_UI.R",
     "properties" : {
-        "cursorPosition" : "120,22",
-        "scrollLine" : "114"
+        "cursorPosition" : "133,27",
+        "scrollLine" : "122"
     },
     "relative_order" : 6,
     "source_on_save" : false,
