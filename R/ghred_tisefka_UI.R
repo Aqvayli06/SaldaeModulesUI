@@ -183,9 +183,9 @@ spread_yellan <- reactive({
 
 
 output$tisefka_spread_var <- renderUI({
-    req(spread_yellan())
-    if(is.null(spread_yellan()))return(NULL)
+    req(input$handle_duplicate)
     if(input$handle_duplicate!="Spread")return(NULL)
+    if(is.null(spread_yellan()))return(NULL)
     spread_value <- colnames(tisefka())
     spread_value <- spread_value[spread_value != input$date_variable]
     spread_value <- spread_value[spread_value != input$tisefka_spread]

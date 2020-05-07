@@ -50,12 +50,12 @@ SA_tisefka_forecast_mod <- function(input, output, session,tisefka,div_width = "
       inputId = session$ns("submit"),
       style = "stretch",
       color = "primary",
-      label = "Update output")
+      label = "Start Predictions")
   })
   #----------- select variable
   output$select_element <- renderUI({
     req(tisefka_choices())
-    shinyWidgets::pickerInput(inputId = session$ns("variable_picker"),
+    shinyWidgets::pickerInput(inputId = session$ns("select_element"),
                               label = "Select target element:",
                               multiple = TRUE,
                               choices = tisefka_choices()
@@ -63,28 +63,10 @@ SA_tisefka_forecast_mod <- function(input, output, session,tisefka,div_width = "
   })
 
 
-  output$gemmu_rate_yellan <- renderUI({
-    req(ts_time_units())
-    gemmu_yellan <- SaldaeDataExplorer::gemmu_yellan_f(base_unit = ts_time_units()[1])
-    shinyWidgets::radioGroupButtons(
-      inputId = session$ns("gemmu_rate_yellan"),
-      label = "Possible rates",
-      choices = gemmu_yellan,
-      justified = FALSE,
-      status = "success",
-      checkIcon = list(
-        yes = shiny::icon("ok",
-                          lib = "glyphicon"
-        )
-      )
-    )
-  })
-
   #----------------
-  tisefka_forecast_aqerru <- reactive({
-    req(input$variable_picker)
-    a
-    SaldaeForecasting::Saldae_Forecaster(tisefka = tisefka_tizegzawin(),target_variables = input$variable_picker, anomaly_detection = TRUE, Saldae_model = "saldae_prophet")
+  tisefka_forecast_aqerru <- eventReactive(input$submit,{
+    req(tisefka_tizegzawin())
+      tisefka_forecast_aqerru <- SaldaeForecasting::Saldae_Forecaster(tisefka = tisefka_tizegzawin(),target_variables = input$select_element, anomaly_detection = TRUE, Saldae_model = "saldae_prophet")
   })
 
   tisefka_forecast <- reactive({
@@ -93,18 +75,29 @@ SA_tisefka_forecast_mod <- function(input, output, session,tisefka,div_width = "
   })
 
 
+  tisefka_plots <- reactive({
+    purrr::map(.x =names(tisefka_forecast()),~SaldaeForecasting::sekned_forecast_aqeru(fcast_df =  tisefka_forecast()[[.x]],target_variable = .x))%>%
+      stats::setNames(names(tisefka_forecast()))
+  })
+
   tisefka_tables <- reactive({
     req(tisefka_forecast())
     return(purrr::map(.x =tisefka_forecast(),~reactable::reactable(.x,pagination = FALSE, highlight = TRUE, height = 250))%>%
              stats::setNames(names(tisefka_forecast())))
   })
 
-  tisefka_plots <- reactive({
-    req(tisefka_forecast())
-    purrr::map(.x =names(tisefka_forecast()),~SaldaeForecasting::sekned_forecast_aqeru(fcast_df =  tisefka_forecast()[[.x]],target_variable = .x))%>%
-      stats::setNames(names(tisefka_forecast()))
-  })
+
   #---------------------
+
+  observeEvent(eventExpr=tisefka_tables(),handlerExpr= {
+    purrr::map(names(tisefka_plots()), ~{
+      output_name_plot <- paste0("tisefka_plot_", .x)
+      output_name_table <- paste0("tisefka_table_", .x)
+      output[[output_name_table]] <- reactable::renderReactable(tisefka_tables()[[.x]])
+      output[[output_name_plot]] <- plotly::renderPlotly(tisefka_plots()[[.x]])
+    })
+  })
+
   output$graphs_ui <- renderUI({
     req(tisefka_plots())
     plots_list <- purrr::imap(tisefka_plots(), ~{
@@ -113,10 +106,10 @@ SA_tisefka_forecast_mod <- function(input, output, session,tisefka,div_width = "
             shinydashboard::tabBox(width = 12, title = .y,
                                    tabPanel(icon("bar-chart"),
                                             plotly::plotlyOutput(session$ns(paste0("tisefka_plot_",.y)), height = "250px")
-                                   ),
-                                   tabPanel(icon("table"),
-                                            reactable::reactableOutput(session$ns(paste0("tisefka_table_",.y)))
+                                   ),tabPanel(icon("table"),
+                                              reactable::reactableOutput(session$ns(paste0("tisefka_table_",.y)))
                                    )
+
             )
         ),
         br()
@@ -124,17 +117,8 @@ SA_tisefka_forecast_mod <- function(input, output, session,tisefka,div_width = "
     })
     tagList(plots_list)
   })
-  observeEvent(input$submit, {
-    req(tisefka_plots())
-    purrr::map(names(tisefka_plots()), ~{
-      output_name_plot <- paste0("tisefka_plot_", .x)
-      output_name_table <- paste0("tisefka_table_", .x)
-      output[[output_name_plot]] <- plotly::renderPlotly(tisefka_plots()[[.x]])
-      output[[output_name_table]] <- reactable::renderReactable(tisefka_tables()[[.x]])
-    })
-  })
 
-  analytics_output <- reactive({
+    analytics_output <- reactive({
     req(tisefka_plots())
     output <- list()
     output$analytics_plots    <- tisefka_plots()
