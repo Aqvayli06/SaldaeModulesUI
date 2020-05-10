@@ -131,7 +131,7 @@ SALDAE_reporting_engine <- function(dash_aqerruy = NULL,dash_asezwer= NULL,dash_
                     params = heddlr::provide_parameters(
                     sald_explor_chart = dash_ul$analytics_plots,
                     sald_predict_chart= dash_ul$analytics_tisefka,
-                    sald_report_asezwer =dash_asezwer,
+                    sald_report_asezwer =dash_asezwer
                     ))
 }
 # SALDAE_reporting_engine(dash_aqerruy = aa)
