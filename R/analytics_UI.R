@@ -1,3 +1,26 @@
+key_value_calculator <- function(tisefka = NULL,key_value =NULL){
+  tisefka <- na.omit(tisefka)
+  if(key_value == "Sum"){
+    my_value <- sum(tisefka,na.rm = TRUE)
+  }
+  if(key_value == "Average"){
+    my_value <- colMeans(tisefka,na.rm = TRUE)
+  }
+  if(key_value == "Maximum"){
+    my_value <- max(tisefka,na.rm = TRUE)
+  }
+  if(key_value == "Minimum"){
+    my_value <- min(tisefka,na.rm = TRUE)
+  }
+  if(key_value == "First Value"){
+    my_value <- head(tisefka,1)
+  }
+  if(key_value == "Last Value"){
+    my_value<- tail(tisefka,1)
+  }
+  return(round(my_value,3))
+}
+
 #------------------------ multiple-select, multiple output
 #' Saldae Dashboard Module UI (analytics)
 #' @description Saldae Dashboard module UI : forecasting
@@ -12,10 +35,12 @@ SA_tisefka_forecast_UI <- function(id,mod_title = NULL ,div_width = "col-xs-12 c
   ns <- NS(id)
   fluidPage(
     fluidRow(
-      column(width = 4,uiOutput(ns("select_element")))
+      column(width = 4,uiOutput(ns("select_element"))),
+      column(width = 4,uiOutput(ns("SA_outliers"))),
+      column(width = 3,uiOutput(ns("submit")))
     ),
     fluidRow(
-      column(width = 3,uiOutput(ns("submit")))
+      column(width = 4,uiOutput(ns("SA_key_figure_select")))
     ),
     uiOutput(ns("graphs_ui"))
   )
@@ -45,10 +70,18 @@ SA_tisefka_forecast_mod <- function(input, output, session,tisefka,div_width = "
     tisefka()$ts_time_units
   })
 
+  output$SA_outliers <- renderUI({
+    shinyWidgets::prettySwitch(
+      inputId = session$ns("SA_outliers"),
+      label = "Outliers detection",
+      status = "success",
+      fill = TRUE)
+  })
   output$submit <- renderUI({
+    req(tisefka_choices())
     shinyWidgets::actionBttn(
       inputId = session$ns("submit"),
-      style = "stretch",
+      style = "material-flat",
       color = "primary",
       label = "Start Predictions")
   })
@@ -66,7 +99,7 @@ SA_tisefka_forecast_mod <- function(input, output, session,tisefka,div_width = "
   #----------------
   tisefka_forecast_aqerru <- eventReactive(input$submit,{
     req(tisefka_tizegzawin())
-      tisefka_forecast_aqerru <- SaldaeForecasting::Saldae_Forecaster(tisefka = tisefka_tizegzawin(),target_variables = input$select_element, anomaly_detection = TRUE, Saldae_model = "saldae_prophet")
+      tisefka_forecast_aqerru <- SaldaeForecasting::Saldae_Forecaster(tisefka = tisefka_tizegzawin(),target_variables = input$select_element, anomaly_detection = input$SA_outliers, Saldae_model = "saldae_prophet")
   })
 
   tisefka_forecast <- reactive({
@@ -82,19 +115,39 @@ SA_tisefka_forecast_mod <- function(input, output, session,tisefka,div_width = "
 
   tisefka_tables <- reactive({
     req(tisefka_forecast())
-    return(purrr::map(.x =tisefka_forecast(),~reactable::reactable(.x,pagination = FALSE, highlight = TRUE, height = 250))%>%
+    return(purrr::map(.x =tisefka_forecast(),~DT::datatable(.x,extensions = 'Scroller', options = list(deferRender = TRUE, scrollY = 200, scroller = TRUE)) )%>%
              stats::setNames(names(tisefka_forecast())))
   })
-
-
+  output$SA_key_figure_select <- renderUI({
+    req(tisefka_forecast())
+    key_figures_choices <- c("Average","Sum","Maximum","Minimum","First Value","Last Value")
+    shinyWidgets::pickerInput(
+      inputId = session$ns("SA_key_figure_select"),
+      label = "Saldae Key Numbers:",
+      choices = key_figures_choices,
+      multiple = FALSE
+    )
+  })
   #---------------------
 
   observeEvent(eventExpr=tisefka_tables(),handlerExpr= {
     purrr::map(names(tisefka_plots()), ~{
       output_name_plot <- paste0("tisefka_plot_", .x)
       output_name_table <- paste0("tisefka_table_", .x)
-      output[[output_name_table]] <- reactable::renderReactable(tisefka_tables()[[.x]])
+      output_name_figures <- paste0("tisefka_key_figures_", .x)
+      output[[output_name_table]] <- DT::renderDataTable(tisefka_tables()[[.x]])
       output[[output_name_plot]] <- plotly::renderPlotly(tisefka_plots()[[.x]])
+
+      output[[output_name_figures]] <- shinydashboard::renderInfoBox({
+        my_value <- key_value_calculator(tisefka = tisefka_forecast()[[.x]][,"forecast"],key_value = input$SA_key_figure_select)
+        my_title <- paste(.x,":",input$SA_key_figure_select)
+        shinydashboard::infoBox(title = my_title,
+                                value = my_value,color = "maroon",
+                                width = 6,
+                                shiny::icon("bar-chart")
+        )
+      })
+      #
     })
   })
 
@@ -107,7 +160,15 @@ SA_tisefka_forecast_mod <- function(input, output, session,tisefka,div_width = "
                                    tabPanel(icon("bar-chart"),
                                             plotly::plotlyOutput(session$ns(paste0("tisefka_plot_",.y)), height = "250px")
                                    ),tabPanel(icon("table"),
-                                              reactable::reactableOutput(session$ns(paste0("tisefka_table_",.y)))
+                                              DT::dataTableOutput(session$ns(paste0("tisefka_table_",.y)))
+                                   ),tabPanel(icon("align-left"),
+                                              shiny::textAreaInput(inputId = session$ns(paste0("tisefka_awal_",.y)),label = "Comments",value = "insert your comments here",width = "100%",height = "50%")
+                                   ),tabPanel(icon("percentage"),
+                                              fluidRow(
+                                                column(width = 6,
+                                                       shinydashboard::infoBoxOutput(session$ns(paste0("tisefka_key_figures_",.y)))
+                                                       )
+                                              )
                                    )
 
             )

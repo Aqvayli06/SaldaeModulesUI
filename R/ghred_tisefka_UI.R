@@ -17,14 +17,13 @@ fluidPage(
              inputId = ns("tisefka_tala"),
              label = "Data Source :",
              choices = c(
-               `<i class="fas fa-table"></i>` = "CSV", `<i class="fas fa-database"></i>` = "Database",
-               `<i class="fas fa-file-excel"></i>` = "EXCEL"
-             ),
+               `<i class="fas fa-table"></i>` = "table", `<i class="fas fa-database"></i>` = "database"             ),
              status = "success",
              justified = TRUE,
              selected = "CSV"
            )
-    )
+    ),
+    column(width = 3, uiOutput(ns("excel_tawriqt")))
   ),
   #-----------date related settings
   #---- Help text
@@ -78,9 +77,33 @@ fluidPage(
 
 ghred_tisefka_mod <-function(input, output, session){
 
-  tisefka <- reactive({
+  file_tasetta <- reactive({
     req(input$tisefka_file)
-    SaldaeDataExplorer::ghred_tisefka_aqerru(input_file = input$tisefka_file, tala = input$tisefka_tala, tawriqt = NULL)
+    tools::file_ext(input$tisefka_file$name)
+  })
+  excel_tiwriqin <- reactive({
+   req(file_tasetta())
+   if(file_tasetta()=="csv")return(NULL)
+   if(file_tasetta()=="xlsx"){
+     readxl::excel_sheets(input$tisefka_file$datapath)
+   }
+  })
+  output$excel_tawriqt <- renderUI({
+    req(excel_tiwriqin())
+    if(is.null(excel_tiwriqin()))return(NULL)
+    shinyWidgets::pickerInput(
+      inputId = session$ns("excel_tawriqt"),
+      label = "Choose excel sheet:",
+      choices = excel_tiwriqin(),
+      options = list(
+        style = "btn-primary"
+      )
+    )
+  })
+
+  tisefka <- reactive({
+    req(file_tasetta())
+    SaldaeDataExplorer::ghred_tisefka_aqerru(input_file = input$tisefka_file, tala = file_tasetta(), tawriqt = input$excel_tawriqt)
   })
   output$date_variable_help <- renderUI({
     req(tisefka())
@@ -200,6 +223,7 @@ output$tisefka_spread_var <- renderUI({
     )
   })
 
+
 tisefka_tizegzawin <- reactive({
     req(input$SA_date_format)
     aggregation_metric <- spread_key<-spread_value <- NULL
@@ -211,9 +235,9 @@ tisefka_tizegzawin <- reactive({
     }else if(handle_duplicate=="Aggregate"){
       aggregation_metric  <-  input$aggregate_duplicates
     }
-
     SaldaeDataExplorer::sbed_tisefka(tisefka = tisefka(), date_variable = input$date_variable, SA_date_format = input$SA_date_format, spread_key = spread_key,aggregation_metric = aggregation_metric, spread_value = spread_value)
 })
+
 #--------- display raw data
 data_summary <- reactive({
   req(tisefka_tizegzawin())

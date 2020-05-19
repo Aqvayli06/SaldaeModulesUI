@@ -2,6 +2,8 @@
 
 export(SA_Value_box_UI)
 export(SA_Value_box_server)
+export(SA_key_figures_Server)
+export(SA_key_figures_UI)
 export(SA_reporting_UI)
 export(SA_reporting_mod)
 export(SA_tisefka_UI)

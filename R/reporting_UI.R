@@ -65,14 +65,14 @@ SA_reporting_mod <- function(input, output, session,tisefka_list){
   })
 
   output$report_type <- renderUI({
-    selectInput(session$ns("report_type"), label = "Document Type:", choices = c("html","pdf","dashboard","powerpoint"))
+    selectInput(session$ns("report_type"), label = "Document Type:", choices = c("html","html_pretty","presentation","dashboard","powerpoint"))
   })
 
 
 output$generate_report <- renderUI({
   tisefka_list()
   shinyWidgets::actionBttn(inputId = session$ns("generate_report"),
-                           label = "Generate Report")
+                           label = "Generate Report",style = "material-flat")
 })
 
 output$report_body_box <- renderUI({

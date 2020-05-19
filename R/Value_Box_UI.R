@@ -8,7 +8,10 @@
 
 SA_Value_box_UI <- function(id){
   ns <- NS(id)
-  fluidRow(uiOutput(ns("valuebox_output")))
+  shiny::tagList(
+    uiOutput(ns("SA_info_value_boxes"))
+  )
+
 }
 
 #' Saldae Dashboard Module Server
@@ -20,11 +23,24 @@ SA_Value_box_UI <- function(id){
 #' @return output objects to be displayed in corresponding UI module
 #' @export
 SA_Value_box_server <- function(input, output, session,tisefka) {
-output$valuebox_output <- renderUI({
-  fluidRow(
-    flexdashboard::valueBox(value ="Farid",caption = "Saldae Value Box 1",icon="fa-thumbs-down"),
-    flexdashboard::valueBox(value = "Farid",caption = "Saldae Value Box 2",icon="fa-thumbs-down"),
-    flexdashboard::valueBox(value = "tisefka()[3]",caption = "Saldae Value Box 3",icon="fa-thumbs-down")
+
+  output$SA_info_value_boxes <- renderUI({
+    fluidRow(
+      shinydashboard::valueBoxOutput(session$ns("SA_valuebox")),
+      shinydashboard::infoBoxOutput(session$ns("SA_infobox"))
+    )
+  })
+output$SA_infobox <- shinydashboard::renderInfoBox({
+  shinydashboard::infoBox(title = "Info",
+    value = 22,subtitle = "Saldae Info Box",color = "maroon",
+    shiny::icon("bar-chart")
+  )
+})
+
+output$SA_valuebox <- shinydashboard::renderValueBox({
+  shinydashboard::valueBox(
+    value = 23,subtitle = "Saldae Value Box",
+    icon = icon("users")
   )
 })
 }

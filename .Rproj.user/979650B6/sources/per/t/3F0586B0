@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1589792370797.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3221943615",
+    "id" : "3F0586B0",
+    "lastKnownWriteTime" : 1589793149,
+    "last_content_update" : -2147483648,
+    "path" : "~/Saldae_Analytics/SaldaePackages/SaldaeModulesUI/R/tisefka_UI.R",
+    "project_path" : "R/tisefka_UI.R",
+    "properties" : {
+        "cursorPosition" : "66,3",
+        "scrollLine" : "0"
+    },
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
