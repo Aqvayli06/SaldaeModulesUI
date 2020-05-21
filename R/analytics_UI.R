@@ -139,10 +139,9 @@ SA_tisefka_forecast_mod <- function(input, output, session,tisefka,div_width = "
       output[[output_name_plot]] <- plotly::renderPlotly(tisefka_plots()[[.x]])
 
       output[[output_name_figures]] <- shinydashboard::renderInfoBox({
-        my_value <- key_value_calculator(tisefka = tisefka_forecast()[[.x]][,"forecast"],key_value = input$SA_key_figure_select)
         my_title <- paste(.x,":",input$SA_key_figure_select)
         shinydashboard::infoBox(title = my_title,
-                                value = my_value,color = "maroon",
+                                value = my_analytics_key_values()[[.x]],color = "maroon",
                                 width = 6,
                                 shiny::icon("bar-chart")
         )
@@ -178,12 +177,19 @@ SA_tisefka_forecast_mod <- function(input, output, session,tisefka,div_width = "
     })
     tagList(plots_list)
   })
-
-    analytics_output <- reactive({
+  my_analytics_key_values <- reactive({
+    my_value <- purrr::map(names(tisefka_forecast()),~key_value_calculator(tisefka = tisefka_forecast()[[.x]][,"forecast"],key_value = input$SA_key_figure_select))%>%
+              stats::setNames(names(tisefka_forecast()))
+  })
+  analytics_output <- reactive({
     req(tisefka_plots())
     output <- list()
     output$analytics_plots    <- tisefka_plots()
     output$analytics_tisefka  <- tisefka_forecast()
+    output$analytics_awal <- purrr::map(names(tisefka_plots()),~ input[[paste0("tisefka_awal_",.x)]])%>%stats::setNames(names(tisefka_plots()))
+    output$analytics_key_figures <- list(key_metric = input$SA_key_figure_select,
+                                         key_figures =  my_analytics_key_values())
+
     output$analytics_settings <- "ulac"
     return(output)
   })

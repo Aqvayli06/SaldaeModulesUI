@@ -1,21 +1,21 @@
 {
     "collab_server" : "",
     "contents" : "",
-    "created" : 1589881116960.000,
+    "created" : 1589985116425.000,
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "3594750873",
-    "id" : "5E4A83E4",
-    "lastKnownWriteTime" : 1589883754,
+    "hash" : "2495131490",
+    "id" : "3CD9942C",
+    "lastKnownWriteTime" : 1590070628,
     "last_content_update" : -2147483648,
     "path" : "~/Saldae_Analytics/SaldaePackages/SaldaeModulesUI/R/reporting_UI.R",
     "project_path" : "R/reporting_UI.R",
     "properties" : {
-        "cursorPosition" : "67,115",
-        "scrollLine" : "61"
+        "cursorPosition" : "115,57",
+        "scrollLine" : "101"
     },
-    "relative_order" : 5,
+    "relative_order" : 1,
     "source_on_save" : false,
     "source_window" : "",
     "type" : "r_source"

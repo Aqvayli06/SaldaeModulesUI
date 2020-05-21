@@ -94,10 +94,12 @@ saldae_report_header <- reactive({
     date    = input$report_time,
     output  = list(paste0(input$report_type,"_document")),
     params = list(
-      "sald_explor_chart" = "NA",
-      "sald_predict_chart" = "NA",
-      "sald_introduction" = "NA",
-      "sald_report_asezwer"   = "NA"
+      "sald_explor_chart"         = "NA",
+      "sald_predict_chart"        = "NA",
+      "sald_predict_values"       = "NA",
+      "sald_predict_comment"      = "NA",
+      "sald_introduction"         = "NA",
+      "sald_report_asezwer"       = "NA"
     )
    )
 })
@@ -106,7 +108,9 @@ saldae_report_header <- reactive({
 
 observeEvent(input$generate_report,{
   req(tisefka_list())
-  rmd_files  <- c("Saldae_base_chunk_dashboard.Rmd","Saldae_base_chunk_html.Rmd","Saldae_variable_explorer_block.Rmd","Saldae_reporting_menu.Rmd")
+  rmd_files  <- c("Saldae_base_chunk_dashboard.Rmd","Saldae_base_chunk_html.Rmd",
+                  "Saldae_base_chunk_html_pretty.Rmd","Saldae_base_chunk_presentation.Rmd",
+                  "Saldae_base_chunk_powerpoint.Rmd","Saldae_variable_explorer_block.Rmd","Saldae_reporting_menu.Rmd")
   rmd_files_package  <- system.file(rmd_files, package = "SaldaeReporting")
   dir.create("./reporting")
   file.copy(from = rmd_files_package,to = paste0("./reporting/",rmd_files),overwrite = TRUE)
