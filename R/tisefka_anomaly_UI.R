@@ -46,7 +46,10 @@ SA_anomaly_mod <- function(input, output, session,tisefka) {
                               multiple = FALSE,
                               choices = tisefka_choices(),
                               selected = tisefka_choices()[1]
-                              )
+                              )%>%shinyhelper::helper(type = "markdown",buttonLabel="Got it",
+                                                      # icon= shiny::icon("fa-lightbulb"),
+                                                      colour = "green",
+                                                      content = "sald_anomaly")
     })
   #----------------main chart
   output$tisefka_table <- DT::renderDataTable({

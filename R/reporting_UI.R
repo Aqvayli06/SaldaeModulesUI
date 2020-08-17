@@ -65,7 +65,12 @@ SA_reporting_mod <- function(input, output, session,tisefka_list){
   })
 
   output$report_type <- renderUI({
-    selectInput(session$ns("report_type"), label = "Document Type:", choices = c("html","html_pretty","presentation","dashboard","powerpoint"))
+    selectInput(session$ns("report_type"), label = "Document Type:",
+                choices = c("html","html_pretty","presentation","dashboard","powerpoint"))%>%
+      shinyhelper::helper(type = "markdown",buttonLabel="Got it",
+                          # icon= shiny::icon("fa-lightbulb"),
+                          size = "l",
+                          colour = "green",content = "sald_report")
   })
 
 

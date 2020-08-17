@@ -83,7 +83,10 @@ SA_tisefka_forecast_mod <- function(input, output, session,tisefka,div_width = "
       inputId = session$ns("submit"),
       style = "material-flat",
       color = "primary",
-      label = "Start Predictions")
+      label = "Start Predictions")%>%shinyhelper::helper(type = "markdown",buttonLabel="Got it",
+                                                         # icon= shiny::icon("fa-lightbulb"),
+                                                         colour = "green",
+                                                         content = "sald_forecast")
   })
   #----------- select variable
   output$select_element <- renderUI({
