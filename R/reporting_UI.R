@@ -115,6 +115,10 @@ observeEvent(input$generate_report,{
   dir.create("./reporting")
   file.copy(from = rmd_files_package,to = paste0("./reporting/",rmd_files),overwrite = TRUE)
   SaldaeReporting::SALDAE_reporting_engine(dash_aqerruy = saldae_report_header(),dash_asezwer = input$report_asezwer,dash_ul = tisefka_list())
+
+  #---------report successfully generated
+  shinyalert::shinyalert("Ready!", "report successfully generated", type = "success")
 })
+
 
 }

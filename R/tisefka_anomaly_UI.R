@@ -37,7 +37,7 @@ SA_anomaly_mod <- function(input, output, session,tisefka) {
     tisefka()$numeric_variables
   })
   tisefka_anomaly <- reactive({
-     SaldaeDataExplorer::anomaly_detection_nnegh(tisefka()$tisefka_tizegzawin,target_ts = tisefka()$numeric_variables)
+     SaldaeDataExplorer::anomaly_detection_nnegh(tisefka()$tisefka_tizegzawin,target_ts = tisefka()$numeric_variables,anomaly_mode = "anomalize")
   })
   output$select_element <- renderUI({
     req(tisefka_choices())

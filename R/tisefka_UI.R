@@ -7,7 +7,7 @@
 #' @return plotly interactive object
 mod_sekned_yiwet_tisefka <- function(tisefka = NULL,variable_inu=NULL,graph_type="scatter"){
   y <- list(title = variable_inu)
-  tisefka%>%plotly::plot_ly(x = ~date,y = ~base::get(variable_inu),name =variable_inu ,type = graph_type) %>%
+  tisefka%>%plotly::plot_ly(x = ~date,y = ~base::get(variable_inu),name =variable_inu ,mode = "line",type = graph_type) %>%
     plotly::layout(yaxis = y)%>%plotly::config(displaylogo = F)%>%plotly::partial_bundle()
 }
 
