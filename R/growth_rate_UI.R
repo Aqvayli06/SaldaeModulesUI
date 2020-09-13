@@ -51,7 +51,7 @@ SA_tisefka_gemmu_mod <- function(input, output, session,tisefka,div_width = "col
       inputId = session$ns("submit"),
       style = "material-flat",
       color = "primary",
-      label = "Update output")
+      label = "Start")
   })
   #----------- select variable
   output$select_element <- renderUI({
@@ -95,7 +95,7 @@ SA_tisefka_gemmu_mod <- function(input, output, session,tisefka,div_width = "col
 
   tisefka_yiwen_plots <- reactive({
     req(tisefka_gemmu())
-    purrr::map(.x = tisefka_gemmu(),~SaldaeDataExplorer::sekned_gemmu_f(gemu_tisefka = .x))
+    purrr::map(.x = tisefka_gemmu(),~SaldaeDataExplorer::sekned_gemmu_f(gemmu_tisefka = .x))
   })
   #---------------------
   output$graphs_ui <- renderUI({
