@@ -8,7 +8,7 @@
 mod_sekned_yiwet_tisefka <- function(tisefka = NULL,variable_inu=NULL,graph_type="scatter"){
   y <- list(title = variable_inu)
   tisefka%>%plotly::plot_ly(x = ~date,y = ~base::get(variable_inu),name =variable_inu ,mode = "line",type = graph_type) %>%
-    plotly::layout(yaxis = y)%>%plotly::config(displaylogo = F)%>%plotly::partial_bundle()
+    plotly::layout(yaxis = y)%>%plotly::config(displaylogo = F)
 }
 
 #' Saldae Dashboard Module plotly rawdata
@@ -171,7 +171,7 @@ SA_tisefka_multiple_mod <- function(input, output, session,tisefka,div_width = "
       inputId = session$ns("submit"),
       style = "stretch",
       color = "primary",
-      label = "Update output")
+      label = "Start")
   })
   output$select_element <- renderUI({
     shinyWidgets::pickerInput(inputId = session$ns("variable_picker"),
@@ -262,7 +262,7 @@ SA_tisefka_aggregator_UI <- function(id,mod_title = NULL ,div_width = "col-xs-12
     fluidRow(
     column(width = 4,uiOutput(ns("select_element")))    ,
     column(width = 3,uiOutput(ns("time_unit_data")))    ,
-    column(width = 3,uiOutput(ns("graph_type")))
+    column(width = 3,uiOutput(ns("aggregation_metric")))
     ),
     fluidRow(
       column(width = 3,uiOutput(ns("submit")))
@@ -302,7 +302,7 @@ SA_tisefka_aggregator_mod <- function(input, output, session,tisefka,div_width =
       inputId = session$ns("submit"),
       style = "stretch",
       color = "primary",
-      label = "Update output")
+      label = "Start")
   })
   #----------- select variable
   output$select_element <- renderUI({
@@ -329,26 +329,26 @@ SA_tisefka_aggregator_mod <- function(input, output, session,tisefka,div_width =
       )
     )
   })
-  #--------------- chart type
-  output$graph_type <- renderUI({
-    plot_choices <- c(
-      `<i class='fa fa-line-chart'></i>` = "scatter", `<i class='fas fa-circle'></i>` = "bar", `<i class='fa fa-line-chart'></i>` = "Lines+Markers",
-      `<i class='fas fa-chart-area'></i>` = "Filled", `<i class='fa fa-bar-chart'></i>` = "Bar", `<i class='fas fa-bell'></i>` = "Density"
-    )
-    shinyWidgets::radioGroupButtons(
-      inputId = session$ns("graph_type"),
-      choices = plot_choices,
-      label = "Select Chart Type:",
-      justified = FALSE,
-      status = "success",
-      selected = plot_choices[1]
-    )
+  # aggregation metric
+  output$aggregation_metric <- renderUI({
+    req(input$time_unit_data)
+    if(input$time_unit_data !=  ts_time_units()[1]){
+      aggregation_choices <- c("Sum","Average","Min","Max","Median")
+      shinyWidgets::pickerInput(inputId = session$ns("aggregation_metric"),
+                                label = "Select Aggregation Metric:",
+                                multiple = FALSE,
+                                selected = aggregation_choices[1],
+                                choices = aggregation_choices
+      )
+    }
+
   })
   #----------------
   tisefka_aggregated <- reactive({
-    req(input$variable_picker)
-    SaldaeDataExplorer::data_exloration_aqerru(tisefka = tisefka_tizegzawin(),target_ts = input$variable_picker,time_unit =  input$time_unit_data,base_unit = ts_time_units()[1],aggregation_metric = "Sum")
-    })
+    req(input$aggregation_metric)
+    SaldaeDataExplorer::data_exloration_aqerru(tisefka = tisefka_tizegzawin(),target_ts = input$variable_picker,time_unit =  input$time_unit_data,base_unit = ts_time_units()[1],
+                                               aggregation_metric = input$aggregation_metric)
+  })
 
   tisefka_tables <- reactive({
     req(tisefka_aggregated())

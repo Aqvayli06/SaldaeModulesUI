@@ -48,7 +48,10 @@ fluidPage(
   ),
 
 
-  #---- Data Overview
+  #---- Data Overview 1(key figures)
+  uiOutput(ns("SA_tisefka_overview")),
+
+  #-------- Data overview 2
   div(class = "col-xs-12 col-sm-12 col-md-12",
       shinydashboard::tabBox(width = 12, title = "Data Diagnosis",
                              tabPanel(title = "Overview",icon = icon("eye"),
@@ -245,6 +248,54 @@ data_summary <- reactive({
     return(diag_output)
 })
 
+#------- display data Overview
+
+output$SA_tisefka_overview <- renderUI({
+  req(tisefka_tizegzawin())
+  fluidRow(
+    shinydashboard::valueBoxOutput(session$ns("SA_overview1")),
+    shinydashboard::infoBoxOutput(session$ns("SA_overview2")),
+    shinydashboard::infoBoxOutput(session$ns("SA_overview3"))
+
+  )
+})
+output$SA_overview1 <- shinydashboard::renderInfoBox({
+  req(ts_time_units())
+  shinydashboard::infoBox(title = "Time frequency",
+                          value = ts_time_units()[1],subtitle = "",color = "olive",
+                          shiny::icon("hourglass")
+  )
+})
+output$SA_overview2 <- shinydashboard::renderInfoBox({
+  req(tisefka_tizegzawin())
+  info_val <- paste(ncol(tisefka_tizegzawin()),"x",nrow(tisefka_tizegzawin()))
+  shinydashboard::infoBox(title = "Data Info",
+                          value = info_val,subtitle = "Variables(columns) x Elements(rows)",color = "green",
+                          shiny::icon("bar-chart")
+  )
+})
+output$SA_overview3 <- shinydashboard::renderInfoBox({
+  req(data_summary())
+  val_quality <- mean(data_summary()$diagnosis[,"missing_percent",drop=F])
+  val_quality <- round((1- ifelse(is.na(val_quality),0,val_quality))*100,2)
+
+  qual_col <- "green"
+  if(val_quality < 80 )qual_col <- "navy"
+  if(val_quality < 50 )qual_col <- "orange"
+  if(val_quality < 30 )qual_col <- "red"
+
+  shinydashboard::infoBox(title = "Data Quality",
+                          value = paste(val_quality,"%"),subtitle = "not missing values",color = qual_col,
+                          shiny::icon("tasks")
+  )
+})
+
+
+ts_time_units <- reactive({
+  return(SaldaeDataExplorer::possible_units_for_summary(time_vect = tisefka_tizegzawin()$date))
+})
+
+#----- detect numerical variables
 numeric_variables <- reactive({
     req(data_summary())
     dat_diag <- data_summary()$diagnosis
@@ -278,9 +329,7 @@ output$tisefka_view <- rhandsontable::renderRHandsontable({
   req(tisefka_overview())
   return(tisefka_overview())
 })
-ts_time_units <- reactive({
-  return(SaldaeDataExplorer::possible_units_for_summary(time_vect = tisefka_tizegzawin()$date))
-})
+
 
 explore_output <- reactive({
   req(tisefka_overview())
