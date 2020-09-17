@@ -74,7 +74,7 @@ SA_tisefka_forecast_mod <- function(input, output, session,tisefka,div_width = "
     shinyWidgets::prettySwitch(
       inputId = session$ns("SA_outliers"),
       label = "Outliers detection",
-      status = "success",
+      status = "info",
       fill = TRUE)
   })
   output$submit <- renderUI({

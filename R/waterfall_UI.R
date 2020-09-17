@@ -99,7 +99,7 @@ Saldae_kefrida_mod <- function(input, output, session,tisefka,div_width = "col-x
     shinyWidgets::prettySwitch(
       inputId = session$ns("kefrida"),
       label = "Waterfall",
-      status = "success",
+      status = "info",
       fill = TRUE
     )
   })
