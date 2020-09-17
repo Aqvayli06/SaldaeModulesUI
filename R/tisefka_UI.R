@@ -7,8 +7,43 @@
 #' @return plotly interactive object
 mod_sekned_yiwet_tisefka <- function(tisefka = NULL,variable_inu=NULL,graph_type="scatter"){
   y <- list(title = variable_inu)
-  tisefka%>%plotly::plot_ly(x = ~date,y = ~base::get(variable_inu),name =variable_inu ,mode = "line",type = graph_type) %>%
-    plotly::layout(yaxis = y)%>%plotly::config(displaylogo = F)
+  x <- list(title =  "date")
+
+  graph_type <- base::tolower(graph_type)
+
+  graph_fill <- bar_type <- graph_mode <- NULL
+
+  if (graph_type %in% c("markers")) {
+    graph_type <- "scatter"
+    graph_mode <- "markers"
+    RAW_col <- NULL
+  }
+  if (graph_type %in% c("lines", "lines+markers")) {
+    graph_mode <- graph_type
+    graph_type <- "scatter"
+  }
+  if (graph_type %in% c("filled")) {
+    graph_mode <- "lines"
+    graph_type <- "scatter"
+    graph_fill <- "tozeroy"
+  }
+  if (graph_type %in% c("bar1")) {
+    graph_type <- "bar"
+    bar_type <- NULL
+  }
+  if (graph_type %in% c("density")) {
+    tisefka <- stats::density(tisefka[, variable_inu, drop = T])
+    tisefka <- data.frame(date = tisefka$x, target_variable = tisefka$y)
+    colnames(tisefka) <- c("date",variable_inu)
+    graph_mode <- "lines"
+    graph_type <- "scatter"
+    graph_fill <- "tozeroy"
+    y <- list(title = "probability")
+    x <- list(title = variable_inu)
+  }
+
+  tisefka%>%plotly::plot_ly(x = ~date,y = ~base::get(variable_inu),name =variable_inu ,mode = graph_mode,fill = graph_fill,type = graph_type) %>%
+    plotly::layout(yaxis = y,xaxis = x)%>%plotly::config(displaylogo = F)
 }
 
 #' Saldae Dashboard Module plotly rawdata
@@ -99,7 +134,7 @@ SA_tisefka_mod <- function(input, output, session,tisefka) {
   output$graph_type <- renderUI({
     req(tisefka_tizegzawin())
     plot_choices <- c(
-      `<i class='fa fa-line-chart'></i>` = "scatter", `<i class='fas fa-circle'></i>` = "bar", `<i class='fa fa-line-chart'></i>` = "Lines+Markers",
+      `<i class='fa fa-line-chart'></i>` = "Lines", `<i class='fas fa-circle'></i>` = "Markers", `<i class='fa fa-line-chart'></i>` = "Lines+Markers",
       `<i class='fas fa-chart-area'></i>` = "Filled", `<i class='fa fa-bar-chart'></i>` = "Bar", `<i class='fas fa-bell'></i>` = "Density"
     )
 
@@ -108,7 +143,7 @@ SA_tisefka_mod <- function(input, output, session,tisefka) {
       label = "Select Chart Type:",
       choices = plot_choices,
       justified = FALSE,
-      status = "success",
+      status = "primary",
       selected = plot_choices[1]
     )
   })
@@ -183,7 +218,7 @@ SA_tisefka_multiple_mod <- function(input, output, session,tisefka,div_width = "
   #--------------- chart type
   output$graph_type <- renderUI({
     plot_choices <- c(
-      `<i class='fa fa-line-chart'></i>` = "scatter", `<i class='fas fa-circle'></i>` = "bar", `<i class='fa fa-line-chart'></i>` = "Lines+Markers",
+      `<i class='fa fa-line-chart'></i>` = "Lines", `<i class='fas fa-circle'></i>` = "Markers", `<i class='fa fa-line-chart'></i>` = "Lines+Markers",
       `<i class='fas fa-chart-area'></i>` = "Filled", `<i class='fa fa-bar-chart'></i>` = "Bar", `<i class='fas fa-bell'></i>` = "Density"
     )
     shinyWidgets::radioGroupButtons(
@@ -191,7 +226,7 @@ SA_tisefka_multiple_mod <- function(input, output, session,tisefka,div_width = "
       choices = plot_choices,
       label = "Select Chart Type:",
       justified = FALSE,
-      status = "success",
+      status = "primary",
       selected = plot_choices[1]
     )
   })
@@ -211,13 +246,23 @@ tisefka_yiwen_plots <- reactive({
 })
 
 
+SA_div_width <- reactive({
+  req(input$variable_picker)
+  if(length(input$variable_picker)==1){
+    div_width  <- "col-xs-6 col-sm-12 col-md-12"
+  }else if(length(input$variable_picker)==2){
+    div_width  <- "col-xs-6 col-sm-12 col-md-6"
+  }else{
+    div_width  <- "col-xs-6 col-sm-12 col-md-4"
+  }
+  return(div_width)
+})
 #---------------------
 output$graphs_ui <- renderUI({
   req(tisefka_yiwen_plots())
-  # div_width = "col-xs-12 col-sm-12 col-md-4"
   plots_list <- purrr::imap(tisefka_yiwen_plots(), ~{
     tagList(
-      div(class = div_width,
+      div(class = SA_div_width(),
           shinydashboard::tabBox(width = 12, title = .y,
                                  tabPanel(icon("bar-chart"),
                                           plotly::plotlyOutput(session$ns(paste0("tisefka_plot_",.y)), height = "250px")
@@ -313,6 +358,17 @@ SA_tisefka_aggregator_mod <- function(input, output, session,tisefka,div_width =
     )
   })
 
+  SA_div_width <- reactive({
+    req(input$variable_picker)
+    if(length(input$variable_picker)==1){
+      div_width  <- "col-xs-6 col-sm-12 col-md-12"
+    }else if(length(input$variable_picker)==2){
+      div_width  <- "col-xs-6 col-sm-12 col-md-6"
+    }else{
+      div_width  <- "col-xs-6 col-sm-12 col-md-4"
+    }
+    return(div_width)
+  })
 #---------------------------------------
   output$time_unit_data <- renderUI({
     req(ts_time_units())
@@ -320,7 +376,7 @@ SA_tisefka_aggregator_mod <- function(input, output, session,tisefka,div_width =
       inputId = session$ns("time_unit_data"),
       label = "Aggregate by",
       choices =  ts_time_units(),
-      status = "success",
+      status = "primary",
       justified = FALSE,
       checkIcon = list(
         yes = shiny::icon("ok",
@@ -365,7 +421,7 @@ SA_tisefka_aggregator_mod <- function(input, output, session,tisefka,div_width =
     req(tisefka_yiwen_plots())
     plots_list <- purrr::imap(tisefka_yiwen_plots(), ~{
       tagList(
-        div(class = div_width,
+        div(class = SA_div_width(),
             shinydashboard::tabBox(width = 12, title = .y,
                                    tabPanel(icon("bar-chart"),
                                             plotly::plotlyOutput(session$ns(paste0("tisefka_plot_",.y)), height = "250px")
