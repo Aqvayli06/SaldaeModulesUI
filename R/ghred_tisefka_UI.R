@@ -18,7 +18,7 @@ fluidPage(
              label = "Data Source :",
              choices = c(
                `<i class="fas fa-table"></i>` = "table", `<i class="fas fa-database"></i>` = "database"             ),
-             status = "success",
+             status = "info",
              justified = TRUE,
              selected = "CSV"
            )
