@@ -5,7 +5,7 @@
 #' @param variable_inu variable to plot
 #' @param graph_type  plot type  "bar" "scatter" "line" "hist",..
 #' @return plotly interactive object
-mod_sekned_yiwet_tisefka <- function(tisefka = NULL,variable_inu=NULL,graph_type="scatter"){
+mod_sekned_yiwet_tisefka <- function(tisefka = NULL,variable_inu=NULL,graph_type="scatter",graph_col = "#228B22"){
   y <- list(title = variable_inu)
   x <- list(title =  "date")
 
@@ -41,8 +41,8 @@ mod_sekned_yiwet_tisefka <- function(tisefka = NULL,variable_inu=NULL,graph_type
     y <- list(title = "probability")
     x <- list(title = variable_inu)
   }
-
-  tisefka%>%plotly::plot_ly(x = ~date,y = ~base::get(variable_inu),name =variable_inu ,mode = graph_mode,fill = graph_fill,type = graph_type) %>%
+  if(is.null(graph_col)==FALSE)graph_col <- I(graph_col)
+  tisefka%>%plotly::plot_ly(x = ~date,y = ~base::get(variable_inu),name =variable_inu ,mode = graph_mode,fill = graph_fill,type = graph_type,color = graph_col) %>%
     plotly::layout(yaxis = y,xaxis = x)%>%plotly::config(displaylogo = F)
 }
 
@@ -56,7 +56,7 @@ mod_sekned_yiwet_tisefka <- function(tisefka = NULL,variable_inu=NULL,graph_type
 #' @export
 
 mod_sekned_tisefka_iceqfan <- function(tisefka = NULL,target_variables= NULL,graph_type = NULL){
-  plotlist_inu <- target_variables%>%purrr::map(function(x)mod_sekned_yiwet_tisefka(tisefka =tisefka ,variable_inu = x,graph_type = graph_type))
+  plotlist_inu <- target_variables%>%purrr::map(function(x)mod_sekned_yiwet_tisefka(tisefka =tisefka ,variable_inu = x,graph_type = graph_type,graph_col = NULL))
   sub_rows <- switch (length(plotlist_inu),
     "1" = 0,"2" = 1,"3" = 2,"4" = 2,"5" = 2,"6" = 2,"7" = 3, "8" = 3, "9" = 3,"10" = 4,"11" = 4, "12" = 4
   )
@@ -143,7 +143,7 @@ SA_tisefka_mod <- function(input, output, session,tisefka) {
       label = "Select Chart Type:",
       choices = plot_choices,
       justified = FALSE,
-      status = "primary",
+      status = "success",
       selected = plot_choices[1]
     )
   })
@@ -178,6 +178,8 @@ SA_tisefka_multiple_UI <- function(id,mod_title = NULL ,div_width = "col-xs-12 c
     column(width = 3,uiOutput(ns("graph_type")))    ,
     column(width = 3,uiOutput(ns("submit")))
   ),
+  # colour picker
+  colourpicker::colourInput(ns("graph_col"), "Select colour", "navy"),
   uiOutput(ns("graphs_ui"))
   )
 }
@@ -205,7 +207,7 @@ SA_tisefka_multiple_mod <- function(input, output, session,tisefka,div_width = "
     shinyWidgets::actionBttn(
       inputId = session$ns("submit"),
       style = "stretch",
-      color = "primary",
+      color = "success",
       label = "Start")
   })
   output$select_element <- renderUI({
@@ -226,7 +228,7 @@ SA_tisefka_multiple_mod <- function(input, output, session,tisefka,div_width = "
       choices = plot_choices,
       label = "Select Chart Type:",
       justified = FALSE,
-      status = "primary",
+      status = "success",
       selected = plot_choices[1]
     )
   })
@@ -241,7 +243,7 @@ tisefka_tables <- reactive({
 
 tisefka_yiwen_plots <- reactive({
     req(tisefka_tizegzawin())
-    purrr::imap(input$variable_picker,~mod_sekned_yiwet_tisefka(tisefka = tisefka_tizegzawin(),variable_inu = .x,graph_type = input$graph_type))%>%
+    purrr::imap(input$variable_picker,~mod_sekned_yiwet_tisefka(tisefka = tisefka_tizegzawin(),variable_inu = .x,graph_type = input$graph_type,graph_col = input$graph_col))%>%
       stats::setNames(input$variable_picker)
 })
 
@@ -346,7 +348,7 @@ SA_tisefka_aggregator_mod <- function(input, output, session,tisefka,div_width =
     shinyWidgets::actionBttn(
       inputId = session$ns("submit"),
       style = "stretch",
-      color = "primary",
+      color = "success",
       label = "Start")
   })
   #----------- select variable
@@ -376,7 +378,7 @@ SA_tisefka_aggregator_mod <- function(input, output, session,tisefka,div_width =
       inputId = session$ns("time_unit_data"),
       label = "Aggregate by",
       choices =  ts_time_units(),
-      status = "primary",
+      status = "success",
       justified = FALSE,
       checkIcon = list(
         yes = shiny::icon("ok",

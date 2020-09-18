@@ -5,7 +5,7 @@
 \title{Saldae Dashboard Module plotly rawdata single}
 \usage{
 mod_sekned_yiwet_tisefka(tisefka = NULL, variable_inu = NULL,
-  graph_type = "scatter")
+  graph_type = "scatter", graph_col = "#228B22")
 }
 \arguments{
 \item{tisefka}{raw data}

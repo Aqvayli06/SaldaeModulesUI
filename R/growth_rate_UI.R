@@ -50,7 +50,7 @@ SA_tisefka_gemmu_mod <- function(input, output, session,tisefka,div_width = "col
     shinyWidgets::actionBttn(
       inputId = session$ns("submit"),
       style = "material-flat",
-      color = "primary",
+      color = "success",
       label = "Start")
   })
   #----------- select variable

@@ -5,7 +5,7 @@
         ],
         "path" : "/R",
         "projectRelative" : true,
-        "query" : "Filled",
+        "query" : "\"primary\"",
         "regex" : false
     }
 }

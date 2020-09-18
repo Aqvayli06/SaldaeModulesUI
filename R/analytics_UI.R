@@ -42,6 +42,10 @@ SA_tisefka_forecast_UI <- function(id,mod_title = NULL ,div_width = "col-xs-12 c
     fluidRow(
       column(width = 4,uiOutput(ns("SA_key_figure_select")))
     ),
+    fluidRow(
+      column(colourpicker::colourInput(ns("obs_col"), "Observations", "#00AFBB"),width = 1),
+      column(colourpicker::colourInput(ns("fcast_col"), "Predictions", "#E1AF00"),width = 1)
+    ),
     uiOutput(ns("graphs_ui"))
   )
 }
@@ -82,7 +86,7 @@ SA_tisefka_forecast_mod <- function(input, output, session,tisefka,div_width = "
     shinyWidgets::actionBttn(
       inputId = session$ns("submit"),
       style = "material-flat",
-      color = "primary",
+      color = "success",
       label = "Start Predictions")%>%shinyhelper::helper(type = "markdown",buttonLabel="Got it",
                                                          # icon= shiny::icon("fa-lightbulb"),
                                                          colour = "green",
@@ -112,7 +116,9 @@ SA_tisefka_forecast_mod <- function(input, output, session,tisefka,div_width = "
 
 
   tisefka_plots <- reactive({
-    purrr::map(.x =names(tisefka_forecast()),~SaldaeForecasting::sekned_forecast_aqeru(fcast_df =  tisefka_forecast()[[.x]],target_variable = .x))%>%
+    plot_settings <- list()
+    plot_settings[["colors_inu"]] <- c(input$obs_col,"darkgreen",input$fcast_col,"#EBCC2A")
+    purrr::map(.x =names(tisefka_forecast()),~SaldaeForecasting::sekned_forecast_aqeru(fcast_df =  tisefka_forecast()[[.x]],target_variable = .x ,plot_settings = plot_settings))%>%
       stats::setNames(names(tisefka_forecast()))
   })
 
