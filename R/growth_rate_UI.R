@@ -78,7 +78,11 @@ SA_tisefka_gemmu_mod <- function(input, output, session,tisefka,div_width = "col
                           lib = "glyphicon"
         )
       )
-    )
+    )%>%
+      shinyhelper::helper(type = "markdown",buttonLabel="Got it",
+                          # icon= shiny::icon("fa-lightbulb"),
+                          size = "l",
+                          colour = "green",content = "sald_growth_rate")
   })
 
   #----------------

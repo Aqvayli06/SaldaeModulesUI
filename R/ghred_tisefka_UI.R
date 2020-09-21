@@ -6,6 +6,7 @@
 ghred_tisefka_UI <- function(id){
   ns <- NS(id)
 fluidPage(
+  tags$head(tags$style(".progress-bar{background-color:#A6761D;}")),
   fluidRow(
     column(width = 3,
            fileInput(inputId = ns("tisefka_file"), label = "Choose CSV File",

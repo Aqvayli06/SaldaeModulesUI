@@ -7,18 +7,12 @@
 SA_reporting_UI <- function(id){
   ns <- NS(id)
   fluidPage(
-    fluidRow(
-      column(width = 12,
-             uiOutput(ns("report_header_box"))
-      )
-    ),
-    fluidRow(
-      column(width = 12,
-             uiOutput(ns("report_body_box"))
-      )
-    ),
-    #------------------- Generate Report
-    uiOutput(ns("generate_report"))
+    # report board
+    uiOutput(ns("report_header_box")),
+    #report additional content
+    uiOutput(ns("report_body_box")),
+    # generate Report
+    uiOutput(ns("report_output_box"))
   )
 
 }
@@ -74,11 +68,7 @@ SA_reporting_mod <- function(input, output, session,tisefka_list){
   })
 
 
-output$generate_report <- renderUI({
-  tisefka_list()
-  shinyWidgets::actionBttn(inputId = session$ns("generate_report"),
-                           label = "Generate Report",style = "material-flat")
-})
+
 
 output$report_body_box <- renderUI({
   shinydashboard::box(title = "Reporting Document Content",collapsible = TRUE,
@@ -91,6 +81,19 @@ output$report_body_box <- renderUI({
                       )
   )
 })
+
+
+output$report_output_box <- renderUI({
+  shinydashboard::box(title = "Report Generation",collapsible = TRUE,
+                      status = "success",width = 12,
+                      #-----HEADER CONTENT
+                      fluidRow(
+                        column(width = 2,uiOutput(session$ns("generate_SA_report"))),
+                        column(width = 2,uiOutput(session$ns("export_SA_report")))
+                      )
+  )
+})
+
 
 saldae_report_header <- reactive({
    header_list <- list(
@@ -107,20 +110,46 @@ saldae_report_header <- reactive({
       "sald_report_asezwer"       = "NA"
     )
    )
+   return(header_list)
+})
+
+output$generate_SA_report <- renderUI({
+  req(tisefka_list())
+  shinyWidgets::actionBttn(inputId = session$ns("generate_SA_report"),
+                           label = "Generate Report",style = "material-flat")
+})
+output$export_SA_report <- renderUI({
+  req(tisefka_list())
+  shinyWidgets::downloadBttn(outputId = session$ns("export_SA_report2"),
+                           label = "Download Report",style = "material-flat")
 })
 
 
 
-observeEvent(input$generate_report,{
-  req(tisefka_list())
+SA_report_output <- reactive({
   rmd_files  <- c("Saldae_base_chunk_dashboard.Rmd","Saldae_base_chunk_html.Rmd",
                   "Saldae_base_chunk_html_pretty.Rmd","Saldae_base_chunk_presentation.Rmd",
                   "Saldae_base_chunk_powerpoint.Rmd","Saldae_variable_explorer_block.Rmd","Saldae_reporting_menu.Rmd")
   rmd_files_package  <- system.file(rmd_files, package = "SaldaeReporting")
   dir.create("./reporting")
   file.copy(from = rmd_files_package,to = paste0("./reporting/",rmd_files),overwrite = TRUE)
-  SaldaeReporting::SALDAE_reporting_engine(dash_aqerruy = saldae_report_header(),dash_asezwer = input$report_asezwer,dash_ul = tisefka_list())
+})
 
+
+output$export_SA_report2 <- downloadHandler(
+  filename = function(){
+    paste0("Saldae_Report_", format(Sys.time(), "%Y%m%d_%H%M"), ".html")
+  },
+  content = function(file) {
+    SA_report_output()
+    SaldaeReporting::SALDAE_reporting_engine(dash_aqerruy = saldae_report_header(),output_file =file ,dash_asezwer = input$report_asezwer,dash_ul = tisefka_list())
+  }
+)
+
+
+observeEvent(input$generate_SA_report,{
+  SA_report_output()
+  SaldaeReporting::SALDAE_reporting_engine(dash_aqerruy = saldae_report_header(),dash_asezwer = input$report_asezwer,dash_ul = tisefka_list())
   #---------report successfully generated
   shinyalert::shinyalert("Ready!", "report successfully generated", type = "success")
 })

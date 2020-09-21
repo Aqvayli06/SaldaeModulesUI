@@ -84,10 +84,8 @@ mod_sekned_tisefka_iceqfan <- function(tisefka = NULL,target_variables= NULL,gra
 
 SA_tisefka_UI <- function(id,mod_title = NULL ,div_width = "col-xs-12 col-sm-12 col-md-12") {
   ns <- NS(id)
-    fluidPage(fluidRow(
-             column(width = 5 ,uiOutput(ns("select_element"))),
-             column(width = 3 ,uiOutput(ns("graph_type")))
-    ),
+  fluidPage(
+    uiOutput(ns("tisefka_view_box")),
     div(class = div_width,
         shinydashboard::tabBox(width = 12, title = mod_title,
                                tabPanel(icon("bar-chart"),
@@ -121,13 +119,24 @@ SA_tisefka_mod <- function(input, output, session,tisefka) {
   tisefka_tizegzawin <- reactive({
     tisefka()$tisefka_tizegzawin
   })
+  output$tisefka_view_box <- renderUI({
+    shinydashboard::box(title = "Forecasting Board",collapsible = TRUE,
+                        status = "success",width = 12,
+                        #-----HEADER CONTENT
+                        fluidRow(
+                          column(width = 3,uiOutput(session$ns("select_element"))),
+                          column(width = 3,uiOutput(session$ns("graph_type")))
+                        )
+    )
+  })
+
   output$select_element <- renderUI({
     req(tisefka_tizegzawin())
     shinyWidgets::pickerInput(inputId = session$ns("variable_picker"),
                               label = "Select target element:",
                               multiple = TRUE,
                               choices = tisefka_choices(),
-                              selected = tisefka_choices()[1]
+                              selected = NULL
                               )
     })
   #--------------- chart type
@@ -173,13 +182,8 @@ SA_tisefka_mod <- function(input, output, session,tisefka) {
 
 SA_tisefka_multiple_UI <- function(id,mod_title = NULL ,div_width = "col-xs-12 col-sm-6 col-md-8") {
   ns <- NS(id)
-  fluidPage(fluidRow(
-    column(width = 4,uiOutput(ns("select_element")))    ,
-    column(width = 3,uiOutput(ns("graph_type")))    ,
-    column(width = 3,uiOutput(ns("submit")))
-  ),
-  # colour picker
-  colourpicker::colourInput(ns("graph_col"), "Select colour", "navy"),
+  fluidPage(
+  uiOutput(ns("multiple_view_box")),
   uiOutput(ns("graphs_ui"))
   )
 }
@@ -201,6 +205,21 @@ SA_tisefka_multiple_mod <- function(input, output, session,tisefka,div_width = "
   })
   tisefka_tizegzawin <- reactive({
     tisefka()$tisefka_tizegzawin
+  })
+
+  output$multiple_view_box <- renderUI({
+    shinydashboard::box(title = "Insight Board",collapsible = TRUE,
+                        status = "success",width = 12,
+                        #-----HEADER CONTENT
+                        fluidRow(
+                          column(width = 4,uiOutput(session$ns("select_element")))    ,
+                          column(width = 3,uiOutput(session$ns("graph_type")))    ,
+                          # colour picker
+                          column(1,colourpicker::colourInput(session$ns("graph_col"), "Colour", "black")),
+                          # start
+                          column(width = 2,uiOutput(session$ns("submit")))
+                        )
+    )
   })
 
   output$submit <- renderUI({
@@ -306,15 +325,8 @@ observeEvent(input$submit, {
 SA_tisefka_aggregator_UI <- function(id,mod_title = NULL ,div_width = "col-xs-12 col-sm-6 col-md-8") {
   ns <- NS(id)
   fluidPage(
-    fluidRow(
-    column(width = 4,uiOutput(ns("select_element")))    ,
-    column(width = 3,uiOutput(ns("time_unit_data")))    ,
-    column(width = 3,uiOutput(ns("aggregation_metric")))
-    ),
-    fluidRow(
-      column(width = 3,uiOutput(ns("submit")))
-    ),
-  uiOutput(ns("graphs_ui"))
+    uiOutput(ns("aggregator_board_box")),
+    uiOutput(ns("graphs_ui"))
   )
 }
 
@@ -343,6 +355,20 @@ SA_tisefka_aggregator_mod <- function(input, output, session,tisefka,div_width =
   ts_time_units <- reactive({
     tisefka()$ts_time_units
   })
+
+  output$aggregator_board_box <- renderUI({
+    shinydashboard::box(title = "Aggregation Board",collapsible = TRUE,
+                        status = "success",width = 12,
+                        #-----HEADER CONTENT
+                        fluidRow(
+                          column(width = 3,uiOutput(session$ns("select_element")))    ,
+                          column(width = 3,uiOutput(session$ns("time_unit_data")))    ,
+                          column(width = 2,uiOutput(session$ns("aggregation_metric"))),
+                          column(width = 2,uiOutput(session$ns("submit")))
+                        )
+    )
+  })
+
 
   output$submit <- renderUI({
     shinyWidgets::actionBttn(
@@ -398,12 +424,15 @@ SA_tisefka_aggregator_mod <- function(input, output, session,tisefka,div_width =
                                 selected = aggregation_choices[1],
                                 choices = aggregation_choices
       )
+    }else{
+      return(NULL)
     }
+
 
   })
   #----------------
   tisefka_aggregated <- reactive({
-    req(input$aggregation_metric)
+    req(input$time_unit_data)
     SaldaeDataExplorer::data_exloration_aqerru(tisefka = tisefka_tizegzawin(),target_ts = input$variable_picker,time_unit =  input$time_unit_data,base_unit = ts_time_units()[1],
                                                aggregation_metric = input$aggregation_metric)
   })

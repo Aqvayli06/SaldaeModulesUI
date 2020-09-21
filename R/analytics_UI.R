@@ -35,16 +35,17 @@ SA_tisefka_forecast_UI <- function(id,mod_title = NULL ,div_width = "col-xs-12 c
   ns <- NS(id)
   fluidPage(
     fluidRow(
-      column(width = 4,uiOutput(ns("select_element"))),
-      column(width = 4,uiOutput(ns("SA_outliers"))),
-      column(width = 3,uiOutput(ns("submit")))
+      column(width = 12,
+             uiOutput(ns("analytics_header_box"))
+      )
     ),
     fluidRow(
-      column(width = 4,uiOutput(ns("SA_key_figure_select")))
-    ),
-    fluidRow(
-      column(colourpicker::colourInput(ns("obs_col"), "Observations", "#00AFBB"),width = 1),
-      column(colourpicker::colourInput(ns("fcast_col"), "Predictions", "#E1AF00"),width = 1)
+      column(width = 6,
+             uiOutput(ns("analytics_config_box"))
+      ),
+      column(width = 6,
+             uiOutput(ns("analytics_advanced_box"))
+      )
     ),
     uiOutput(ns("graphs_ui"))
   )
@@ -74,6 +75,37 @@ SA_tisefka_forecast_mod <- function(input, output, session,tisefka,div_width = "
     tisefka()$ts_time_units
   })
 
+
+  output$analytics_header_box <- renderUI({
+    shinydashboard::box(title = "Forecasting Board",collapsible = TRUE,
+                        status = "success",width = 12,
+                        #-----HEADER CONTENT
+                        fluidRow(
+                          column(width = 4,uiOutput(session$ns("select_element"))),
+                          column(width = 4,uiOutput(session$ns("SA_outliers"))),
+                          column(width = 3,uiOutput(session$ns("forecasting_submit")))
+                        )
+    )
+  })
+  output$analytics_config_box <- renderUI({
+    shinydashboard::box(title = "Settings",collapsible = TRUE,collapsed = FALSE,
+                        status = "success",width = 12,
+                        #-----HEADER CONTENT
+                        fluidRow(
+                          column(colourpicker::colourInput(session$ns("obs_col"), "Observations", "#00AFBB"),width = 3),
+                          column(colourpicker::colourInput(session$ns("fcast_col"), "Predictions", "#E1AF00"),width = 3)
+                        )
+    )
+  })
+  output$analytics_advanced_box <- renderUI({
+    shinydashboard::box(title = "Advanced",collapsible = TRUE,collapsed = FALSE,
+                        status = "success",width = 12,
+                        #-----HEADER CONTENT
+                        fluidRow(
+                          column(width = 6,uiOutput(session$ns("SA_key_figure_select")))
+                        )
+    )
+  })
   output$SA_outliers <- renderUI({
     shinyWidgets::prettySwitch(
       inputId = session$ns("SA_outliers"),
@@ -81,10 +113,10 @@ SA_tisefka_forecast_mod <- function(input, output, session,tisefka,div_width = "
       status = "info",
       fill = TRUE)
   })
-  output$submit <- renderUI({
+  output$forecasting_submit <- renderUI({
     req(tisefka_choices())
     shinyWidgets::actionBttn(
-      inputId = session$ns("submit"),
+      inputId = session$ns("forecasting_submit"),
       style = "material-flat",
       color = "success",
       label = "Start Predictions")%>%shinyhelper::helper(type = "markdown",buttonLabel="Got it",
@@ -104,7 +136,7 @@ SA_tisefka_forecast_mod <- function(input, output, session,tisefka,div_width = "
 
 
   #----------------
-  tisefka_forecast_aqerru <- eventReactive(input$submit,{
+  tisefka_forecast_aqerru <- eventReactive(input$forecasting_submit,{
     req(tisefka_tizegzawin())
       tisefka_forecast_aqerru <- SaldaeForecasting::Saldae_Forecaster(tisefka = tisefka_tizegzawin(),target_variables = input$select_element, anomaly_detection = input$SA_outliers, Saldae_model = "saldae_prophet")
   })
@@ -190,15 +222,15 @@ SA_tisefka_forecast_mod <- function(input, output, session,tisefka,div_width = "
     my_value <- purrr::map(names(tisefka_forecast()),~key_value_calculator(tisefka = tisefka_forecast()[[.x]][,"forecast"],key_value = input$SA_key_figure_select))%>%
               stats::setNames(names(tisefka_forecast()))
   })
+
+
   analytics_output <- reactive({
-    req(tisefka_plots())
     output <- list()
     output$analytics_plots    <- tisefka_plots()
     output$analytics_tisefka  <- tisefka_forecast()
     output$analytics_awal <- purrr::map(names(tisefka_plots()),~ input[[paste0("tisefka_awal_",.x)]])%>%stats::setNames(names(tisefka_plots()))
     output$analytics_key_figures <- list(key_metric = input$SA_key_figure_select,
                                          key_figures =  my_analytics_key_values())
-
     output$analytics_settings <- "ulac"
     return(output)
   })
