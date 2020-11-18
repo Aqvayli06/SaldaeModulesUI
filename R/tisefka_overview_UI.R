@@ -8,7 +8,7 @@
 
 SA_tisefka_overview_UI <- function(id){
   ns <- NS(id)
-  shiny::tagList(
+  tagList(
     uiOutput(ns("SA_tisefka_overview"))
   )
 

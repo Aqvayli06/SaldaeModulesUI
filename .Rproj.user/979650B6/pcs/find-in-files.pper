@@ -3,9 +3,9 @@
         "caseSensitive" : false,
         "filePatterns" : [
         ],
-        "path" : "/R",
+        "path" : "",
         "projectRelative" : true,
-        "query" : "report_type",
+        "query" : "categoricals_unique_values",
         "regex" : false
     }
 }

@@ -1,0 +1,74 @@
+
+`r names(params$sald_explor_chart)[[VARIABLE_INDEX]]`
+=======================================================================
+
+Row {data-width=200}
+-----------------------------------------------------------------------
+
+
+### `r paste(names(params$sald_explor_chart)[[VARIABLE_INDEX]] ,":",params$sald_predict_values$key_metric)`
+
+
+```{r}
+my_key_figure <- params$sald_predict_values$key_figures[[VARIABLE_INDEX]]
+flexdashboard::valueBox(my_key_figure,color = "brown", icon = "fa-euro-sign")
+```
+
+### Summary {data-commentary-height=100}
+
+```{r,warning=FALSE,echo=FALSE}
+h5(params$sald_predict_comment[[VARIABLE_INDEX]])
+```
+
+***
+
+Row {.tabset}
+-----------------------------------------------------------------------
+
+### Chart
+
+```{r, warning=FALSE,fig.height=6,echo=FALSE}
+params$sald_explor_chart[[VARIABLE_INDEX]]
+
+```
+
+
+### Table
+
+```{r, warning=FALSE,fig.height=4,echo=FALSE}
+
+DT::datatable(params$sald_predict_chart[[VARIABLE_INDEX]],
+              extensions = c('Buttons','Scroller'), options = list(
+                deferRender = TRUE,
+              scrollY = 200,
+              scroller = TRUE,
+              dom = 'Bfrtip',
+    buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
+  )
+)
+# reactable::reactable(params$sald_predict_chart[[VARIABLE_INDEX]],pagination = FALSE, highlight = TRUE, height = 200)
+
+```
+
+
+<!-- Column {.tabset data-width=400} -->
+<!-- ----------------------------------------------------------------------- -->
+
+<!-- ### Sales by Category -->
+
+<!-- ```{r, warning=FALSE,echo=FALSE} -->
+<!-- DT::datatable(params$sald_predict_chart[[VARIABLE_INDEX]], -->
+<!--               extensions = 'Scroller', options = list( -->
+<!--                 deferRender = TRUE, -->
+<!--               scrollY = 200, -->
+<!--               scroller = TRUE -->
+<!--   ) -->
+<!-- ) -->
+<!-- ``` -->
+
+<!-- ### Best Sellers -->
+
+<!-- ```{r,warning=FALSE,echo=FALSE} -->
+<!-- params$sald_predict_comment[[VARIABLE_INDEX]] -->
+<!-- ``` -->
+
