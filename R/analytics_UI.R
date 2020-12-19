@@ -66,10 +66,20 @@ SA_tisefka_forecast_UI <- function(id,mod_title = NULL ,div_width = "col-xs-12 c
 
 SA_tisefka_forecast_mod <- function(input, output, session,tisefka,div_width = "col-xs-6 col-sm-12 col-md-6") {
   tisefka_choices <- reactive({
+    req(tisefka())
     tisefka()$numeric_variables
   })
   tisefka_tizegzawin <- reactive({
+    req(tisefka())
     tisefka()$tisefka_tizegzawin
+  })
+  non_numeric_variables <- reactive({
+    req(tisefka())
+    tisefka()$non_numeric_variables
+  })
+  categoricals_unique_values <- reactive({
+    req(tisefka())
+    tisefka()$categoricals_unique_values
   })
   ts_time_units <- reactive({
     tisefka()$ts_time_units
@@ -81,12 +91,20 @@ SA_tisefka_forecast_mod <- function(input, output, session,tisefka,div_width = "
                         status = "success",width = 12,
                         #-----HEADER CONTENT
                         fluidRow(
-                          column(width = 4,uiOutput(session$ns("select_element"))),
+                          column(width = 3,uiOutput(session$ns("select_element")))    ,
+                          column(width = 2,uiOutput(session$ns("var_granularity"))),
+                          column(width = 2,uiOutput(session$ns("aggregation_metric"))),
                           column(width = 4,uiOutput(session$ns("SA_outliers"))),
                           column(width = 3,uiOutput(session$ns("forecasting_submit")))
+                        ),
+                        fluidRow(
+                          uiOutput(session$ns("non_numeric_variables_inputs"))
                         )
     )
   })
+
+
+
   output$analytics_config_box <- renderUI({
     shinydashboard::box(title = "Settings",collapsible = TRUE,collapsed = FALSE,
                         status = "success",width = 12,
@@ -124,21 +142,111 @@ SA_tisefka_forecast_mod <- function(input, output, session,tisefka,div_width = "
                                                          colour = "green",
                                                          content = "sald_forecast")
   })
-  #----------- select variable
+
+
+  observeEvent(eventExpr=non_numeric_variables(),handlerExpr= {
+    non_numeric_variables()%>%purrr::imap( ~{
+      output_name_app <- paste0("non_numeric_variables_", .x)
+      output[[output_name_app]] <- renderUI({
+        ml_choices <- tisefka()$var_factors[[.x]]
+        shinyWidgets::pickerInput(
+          inputId = session$ns(output_name_app),
+          label = gsub("_"," ",.x),
+          choices = categoricals_unique_values()[[.x]],
+          options = list(
+            `actions-box` = TRUE,
+            size = 10,
+            `selected-text-format` = "count > 3"
+          ),
+          multiple = TRUE
+        )
+      })
+    })
+  })
+
+  output$non_numeric_variables_inputs <- renderUI({
+    req(non_numeric_variables())
+    fluidRow(
+      ml_app_UI <- purrr::map(non_numeric_variables(), ~{
+        column(width = 2, uiOutput(session$ns(paste0("non_numeric_variables_",.x))))
+      })
+    )
+    return(ml_app_UI)
+  })
+
   output$select_element <- renderUI({
-    req(tisefka_choices())
-    shinyWidgets::pickerInput(inputId = session$ns("select_element"),
-                              label = "Select target element:",
+    req(tisefka_tizegzawin())
+    shinyWidgets::pickerInput(inputId = session$ns("variable_picker"),
+                              label = "Target elements:",
                               multiple = TRUE,
-                              choices = tisefka_choices()
+                              choices = tisefka_choices(),
+                              selected = NULL
+    )
+  })
+  output$var_granularity <- renderUI({
+    req(non_numeric_variables())
+    shinyWidgets::pickerInput(inputId = session$ns("var_granularity"),
+                              label = "Granularity:",
+                              multiple = TRUE,
+                              choices = non_numeric_variables(),
+                              selected = NULL
+    )
+  })
+  # aggregation metric
+  output$aggregation_metric <- renderUI({
+    req(non_numeric_variables())
+    aggregation_choices <- c("Average","Sum","Min","Max","Median")
+    shinyWidgets::pickerInput(inputId = session$ns("aggregation_metric"),
+                              label = "Aggregation Metric:",
+                              multiple = FALSE,
+                              selected = aggregation_choices[1],
+                              choices = aggregation_choices
     )
   })
 
 
+  tisefka_iheggan <- reactive({
+    req(tisefka_tizegzawin())
+    req(input$variable_picker)
+    aggreg_fun <- SA_aggregation_funs(aggregation_metric = input$aggregation_metric )
+    tisefka_iheggan <- tisefka_tizegzawin()
+    if(length(non_numeric_variables())>0){
+      categ_input_filter <-non_numeric_variables()%>%purrr::map(~input[[paste0("non_numeric_variables_",.x)]])%>%
+        stats::setNames(non_numeric_variables())
+      categ_input_filter <- categ_input_filter[!unlist(lapply(categ_input_filter, is.null))]
+      for(cat_input in names(categ_input_filter)){
+        tisefka_iheggan <- tisefka_iheggan%>%dplyr::filter(!!rlang::sym(cat_input)%in%categ_input_filter[[cat_input]])
+      }
+    }
+    if(is.null(input$var_granularity)){
+      tisefka_iheggan<- tisefka_iheggan%>%dplyr::select(date,!!input$variable_picker)%>%
+        dplyr::group_by(date)%>%dplyr::summarise_all(aggreg_fun)
+    }else{
+      list_val_fn <- input$variable_picker%>%purrr::map(~aggreg_fun)%>%stats::setNames(input$variable_picker)
+      tisefka_iheggan<- tisefka_iheggan %>%
+        tidyr::pivot_wider(
+          id_cols  = date,
+          names_from  = input$var_granularity,
+          values_from = input$variable_picker,
+          values_fn = list_val_fn)
+    }
+    tisefka_iheggan <- tisefka_iheggan%>%dplyr::arrange(date)
+    return(tisefka_iheggan)
+  })
+
+
+
+  target_variables <- reactive({
+    req(tisefka_iheggan())
+    target_variables <- colnames(tisefka_iheggan())
+    target_variables <- target_variables[target_variables!="date"]
+    return(target_variables)
+  })
+
   #----------------
   tisefka_forecast_aqerru <- eventReactive(input$forecasting_submit,{
-    req(tisefka_tizegzawin())
-      tisefka_forecast_aqerru <- SaldaeForecasting::Saldae_Forecaster(tisefka = tisefka_tizegzawin(),target_variables = input$select_element, anomaly_detection = input$SA_outliers, Saldae_model = "saldae_prophet")
+    req(tisefka_iheggan())
+      tisefka_forecast_aqerru <- SaldaeForecasting::Saldae_Forecaster(tisefka = tisefka_iheggan(),target_variables = target_variables(), anomaly_detection = input$SA_outliers, Saldae_model = "saldae_prophet")
   })
 
   tisefka_forecast <- reactive({
@@ -156,7 +264,7 @@ SA_tisefka_forecast_mod <- function(input, output, session,tisefka,div_width = "
 
   tisefka_tables <- reactive({
     req(tisefka_forecast())
-    return(purrr::map(.x =tisefka_forecast(),~DT::datatable(.x,extensions = 'Scroller', options = list(deferRender = TRUE, scrollY = 200, scroller = TRUE)) )%>%
+    return(purrr::map(.x =tisefka_forecast(),~DT::datatable(.x,extensions = 'Scroller', options = list(deferRender = TRUE, scrollY = 200,scrollX = TRUE, scroller = TRUE)) )%>%
              stats::setNames(names(tisefka_forecast())))
   })
   output$SA_key_figure_select <- renderUI({
@@ -198,7 +306,7 @@ SA_tisefka_forecast_mod <- function(input, output, session,tisefka,div_width = "
         div(class = div_width,
             shinydashboard::tabBox(width = 12, title = .y,
                                    tabPanel(icon("bar-chart"),
-                                            plotly::plotlyOutput(session$ns(paste0("tisefka_plot_",.y)), height = "250px")
+                                            plotly::plotlyOutput(session$ns(paste0("tisefka_plot_",.y)), height = "300px")
                                    ),tabPanel(icon("table"),
                                               DT::dataTableOutput(session$ns(paste0("tisefka_table_",.y)))
                                    ),tabPanel(icon("align-left"),

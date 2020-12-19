@@ -217,7 +217,7 @@ SA_tisefka_gemmu_mod <- function(input, output, session,tisefka,div_width = "col
 
   tisefka_tables <- reactive({
     req(tisefka_gemmu())
-    return(purrr::map(.x =tisefka_gemmu(),~DT::datatable(.x,extensions = 'Scroller', options = list(deferRender = TRUE, scrollY = 200, scroller = TRUE)))%>%
+    return(purrr::map(.x =tisefka_gemmu(),~DT::datatable(.x,extensions = 'Scroller', options = list(deferRender = TRUE, scrollY = 200,scrollX= TRUE, scroller = TRUE)))%>%
              stats::setNames(names(tisefka_gemmu())))
   })
 
@@ -233,7 +233,7 @@ SA_tisefka_gemmu_mod <- function(input, output, session,tisefka,div_width = "col
         div(class = div_width,
             shinydashboard::tabBox(width = 12, title = .y,
                                    tabPanel(icon("bar-chart"),
-                                            plotly::plotlyOutput(session$ns(paste0("tisefka_plot_",.y)), height = "250px")
+                                            plotly::plotlyOutput(session$ns(paste0("tisefka_plot_",.y)), height = "300px")
                                    ),
                                    tabPanel(icon("table"),
                                             DT::dataTableOutput(session$ns(paste0("tisefka_table_",.y)))

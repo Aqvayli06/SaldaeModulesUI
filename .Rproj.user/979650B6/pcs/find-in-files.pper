@@ -5,7 +5,7 @@
         ],
         "path" : "",
         "projectRelative" : true,
-        "query" : "categoricals_unique_values",
+        "query" : "height = \"250px\"",
         "regex" : false
     }
 }

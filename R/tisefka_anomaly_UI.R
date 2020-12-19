@@ -13,7 +13,7 @@ SA_anomaly_UI <- function(id,mod_title = NULL ,div_width = "col-xs-12 col-sm-12 
                                ),
                                tabPanel(icon("bar-chart"),
                                         uiOutput(ns("variable_anomaly_view")),
-                                        dygraphs::dygraphOutput(ns("tisefka_plot"))
+                                        dygraphs::dygraphOutput(ns("tisefka_plot"),height = "700px")
                                )
 
         )

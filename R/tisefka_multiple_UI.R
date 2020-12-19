@@ -206,7 +206,7 @@ SA_tisefka_multiple_mod <- function(input, output, session,tisefka,div_width = "
         div(class = SA_div_width(),
             shinydashboard::tabBox(width = 12, title = .y,
                                    tabPanel(icon("bar-chart"),
-                                            plotly::plotlyOutput(session$ns(paste0("tisefka_plot_",.y)), height = "250px")
+                                            plotly::plotlyOutput(session$ns(paste0("tisefka_plot_",.y)), height = "300px")
                                    ),
                                    tabPanel(icon("table"),
                                             DT::dataTableOutput(session$ns(paste0("tisefka_table_",.y)))

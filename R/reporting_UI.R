@@ -132,7 +132,7 @@ SA_report_output <- reactive({
                   "Saldae_base_chunk_powerpoint.Rmd","Saldae_variable_explorer_block.Rmd","Saldae_reporting_menu.Rmd")
   rmd_files_package  <- system.file(rmd_files, package = "SaldaeReporting")
   dir.create("./reporting")
-  file.copy(from = rmd_files_package,to = paste0("./reporting/",rmd_files),overwrite = TRUE)
+  # file.copy(from = rmd_files_package,to = paste0("./reporting/",rmd_files),overwrite = TRUE)
 })
 
 
